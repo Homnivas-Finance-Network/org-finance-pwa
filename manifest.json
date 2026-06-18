@@ -1,0 +1,21 @@
+{
+  "short_name": "HFN Partner",
+  "name": "Homnivas Finance Network",
+  "icons": [
+    {
+      "src": "https://img.icons8.com/fluency/192/merchant-account.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "https://img.icons8.com/fluency/512/merchant-account.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#020c1b",
+  "theme_color": "#020c1b",
+  "display": "standalone",
+  "orientation": "portrait"
+}

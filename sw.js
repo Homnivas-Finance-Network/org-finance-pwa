@@ -1,10 +1,11 @@
-const CACHE_NAME = 'hfn-partner-v1';
+const CACHE_NAME = 'hfn-partner-v2';
 
 // The essential files to cache for offline viewing
 const ASSETS_TO_CACHE = [
     '/',
     '/index.html',
     '/app.js',
+    '/firebase-config.js',
     '/manifest.json'
 ];
 

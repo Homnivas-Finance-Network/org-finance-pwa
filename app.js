@@ -1,87 +1,739 @@
-// Pointing exactly to your live Cloud Run Python backend
+// ---------------------------------------------------------------------------
+// Homnivas Finance Network — Partner PWA
+// ---------------------------------------------------------------------------
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+    getAuth, onAuthStateChanged, signOut,
+    RecaptchaVerifier, signInWithPhoneNumber,
+    GoogleAuthProvider, signInWithPopup,
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
 const BACKEND_API_URL = "https://org-finance-backend-1059108924249.us-central1.run.app";
 
-async function sendMessageToBackend() {
-    const inputField = document.getElementById("chat-input");
-    const chatLog = document.getElementById("chat-log");
-    const messageText = inputField.value.trim();
+const VERTICALS = [
+    { code: "PL", label: "Personal Loan", icon: "person", desc: "Salaried & individual cash needs" },
+    { code: "BL", label: "Business Loan", icon: "storefront", desc: "Working capital & expansion" },
+    { code: "HL", label: "Home Loan", icon: "home", desc: "Purchase, construction & resale" },
+    { code: "LAP", label: "Loan Against Property", icon: "real_estate_agent", desc: "Unlock value from owned property" },
+];
 
-    if (!messageText) return;
+const STAGES = [
+    { n: 1, label: "New Lead" },
+    { n: 2, label: "Documents" },
+    { n: 3, label: "Verification" },
+    { n: 4, label: "Sanctioned" },
+    { n: 5, label: "Disbursed" },
+];
 
-    // 1. Show the user's message immediately
-    appendMessage(messageText, "user");
-    inputField.value = ""; // Clear the input box
+const GREETINGS = {
+    PL: "Hello! I am <strong>Homnivas Loan Mitra</strong>. Let's get this Personal Loan file started — tell me about your client, or paste their details below.",
+    BL: "Hello! I am <strong>Homnivas Loan Mitra</strong>. Let's set up this Business Loan file — tell me about the business and owner, or paste their details below.",
+    HL: "Hello! I am <strong>Homnivas Loan Mitra</strong>. Let's start this Home Loan file — tell me about the client and the property, or paste their details below.",
+    LAP: "Hello! I am <strong>Homnivas Loan Mitra</strong>. Let's set up this Loan Against Property file — tell me about the client and the collateral property, or paste their details below.",
+};
 
-    // 2. Show the pulsing AI loading state
-    const loadingId = appendMessage("Thinking...", "ai-loading");
+// ---------------------------------------------------------------------------
+// Firebase
+// ---------------------------------------------------------------------------
+
+const firebaseApp = initializeApp(window.HOMNIVAS_FIREBASE_CONFIG);
+const auth = getAuth(firebaseApp);
+
+// ---------------------------------------------------------------------------
+// State
+// ---------------------------------------------------------------------------
+
+const state = {
+    currentCaseId: null,
+    currentVertical: null,
+    currentLanguage: "en",
+    schemaCache: {},
+    confirmationResult: null,
+    pendingPhoneE164: null,
+    recaptchaVerifier: null,
+};
+
+// ---------------------------------------------------------------------------
+// API helpers
+// ---------------------------------------------------------------------------
+
+async function apiFetch(path, { method = "GET", body } = {}) {
+    if (!auth.currentUser) throw new Error("Not signed in.");
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch(`${BACKEND_API_URL}${path}`, {
+        method,
+        headers: {
+            "Authorization": `Bearer ${token}`,
+            "Content-Type": "application/json",
+        },
+        body: body ? JSON.stringify(body) : undefined,
+    });
+    let data = null;
+    try { data = await res.json(); } catch (_) { /* no body */ }
+    if (!res.ok) {
+        throw new Error((data && data.detail) || `Request failed (${res.status})`);
+    }
+    return data;
+}
+
+async function apiFetchBlob(path, { method = "GET" } = {}) {
+    if (!auth.currentUser) throw new Error("Not signed in.");
+    const token = await auth.currentUser.getIdToken();
+    const res = await fetch(`${BACKEND_API_URL}${path}`, {
+        method,
+        headers: { "Authorization": `Bearer ${token}` },
+    });
+    if (!res.ok) {
+        let detail = `Request failed (${res.status})`;
+        try { const j = await res.json(); detail = j.detail || detail; } catch (_) {}
+        throw new Error(detail);
+    }
+    return res.blob();
+}
+
+// ---------------------------------------------------------------------------
+// View routing
+// ---------------------------------------------------------------------------
+
+function showView(id) {
+    document.querySelectorAll(".view").forEach((v) => v.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+
+function setActiveNav(key) {
+    document.querySelectorAll(".nav-btn").forEach((b) => {
+        b.classList.toggle("active", b.dataset.nav === key);
+    });
+}
+
+function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+}
+
+// ---------------------------------------------------------------------------
+// Auth
+// ---------------------------------------------------------------------------
+
+function showLoginStep(step) {
+    ["phone", "otp", "profile"].forEach((s) => {
+        document.getElementById(`login-step-${s}`).classList.toggle("hidden", s !== step);
+    });
+    document.getElementById("login-back-btn").classList.toggle("hidden", step !== "phone");
+    document.getElementById("login-google-footer").classList.toggle("hidden", step !== "phone");
+}
+
+function ensureRecaptcha() {
+    if (!state.recaptchaVerifier) {
+        state.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", { size: "invisible" });
+    }
+    return state.recaptchaVerifier;
+}
+
+function humanizePhoneError(code) {
+    const map = {
+        "auth/invalid-phone-number": "That mobile number doesn't look right.",
+        "auth/too-many-requests": "Too many attempts. Please try again in a while.",
+        "auth/code-expired": "This code has expired — request a new one.",
+        "auth/invalid-verification-code": "That code didn't match. Please try again.",
+        "auth/popup-closed-by-user": "Sign-in was cancelled.",
+    };
+    return map[code];
+}
+
+async function sendOtp() {
+    const raw = document.getElementById("phone-input").value.trim();
+    const errorEl = document.getElementById("phone-error");
+    errorEl.classList.add("hidden");
+
+    if (!/^[6-9]\d{9}$/.test(raw)) {
+        errorEl.textContent = "Enter a valid 10-digit mobile number.";
+        errorEl.classList.remove("hidden");
+        return;
+    }
+
+    const e164 = `+91${raw}`;
+    const spinner = document.getElementById("phone-spinner");
+    const btn = document.getElementById("phone-submit-btn");
+    spinner.classList.remove("hidden");
+    btn.disabled = true;
 
     try {
-        // 3. Send the secure payload to your Python API
-        const response = await fetch(`${BACKEND_API_URL}/api/chat`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                user_message: messageText,
-                broker_id: "demo_broker_howrah", // Placeholder ID for testing
-                language: "en"
-            })
-        });
-
-        const data = await response.json();
-        
-        // 4. Remove the loading pulse
-        document.getElementById(loadingId).remove();
-
-        // 5. Display the AI's response
-        if (response.ok && data.reply) {
-            appendMessage(data.reply, "ai");
-        } else {
-            appendMessage("I ran into an issue connecting to processing. Please try again shortly.", "ai");
-        }
-
-    } catch (error) {
-        console.error("API Request Error:", error);
-        document.getElementById(loadingId).remove();
-        appendMessage("Network timeout or connection dropped. Please check your internet connection.", "ai");
+        const verifier = ensureRecaptcha();
+        state.confirmationResult = await signInWithPhoneNumber(auth, e164, verifier);
+        state.pendingPhoneE164 = e164;
+        document.getElementById("otp-phone-display").textContent = e164;
+        document.getElementById("otp-input").value = "";
+        document.getElementById("otp-error").classList.add("hidden");
+        showLoginStep("otp");
+    } catch (err) {
+        errorEl.textContent = humanizePhoneError(err.code) || err.message;
+        errorEl.classList.remove("hidden");
+        // Invisible reCAPTCHA tokens are single-use — reset so a retry can work.
+        try { state.recaptchaVerifier && state.recaptchaVerifier.clear(); } catch (_) {}
+        state.recaptchaVerifier = null;
+    } finally {
+        spinner.classList.add("hidden");
+        btn.disabled = false;
     }
 }
 
-function appendMessage(text, sender) {
+async function verifyOtp() {
+    const code = document.getElementById("otp-input").value.trim();
+    const errorEl = document.getElementById("otp-error");
+    errorEl.classList.add("hidden");
+
+    if (!/^\d{6}$/.test(code)) {
+        errorEl.textContent = "Enter the 6-digit code.";
+        errorEl.classList.remove("hidden");
+        return;
+    }
+    if (!state.confirmationResult) {
+        errorEl.textContent = "Session expired — please request a new OTP.";
+        errorEl.classList.remove("hidden");
+        showLoginStep("phone");
+        return;
+    }
+
+    const spinner = document.getElementById("otp-spinner");
+    const btn = document.getElementById("otp-submit-btn");
+    spinner.classList.remove("hidden");
+    btn.disabled = true;
+
+    try {
+        await state.confirmationResult.confirm(code);
+        // onAuthStateChanged -> handleAuthState() takes over routing from here.
+    } catch (err) {
+        errorEl.textContent = humanizePhoneError(err.code) || "That code didn't match. Please try again.";
+        errorEl.classList.remove("hidden");
+    } finally {
+        spinner.classList.add("hidden");
+        btn.disabled = false;
+    }
+}
+
+async function signInWithGoogleAdmin() {
+    const errorEl = document.getElementById("google-error");
+    errorEl.classList.add("hidden");
+    try {
+        await signInWithPopup(auth, new GoogleAuthProvider());
+        // onAuthStateChanged -> handleAuthState() upserts the profile and
+        // enforces the ADMIN_EMAILS allowlist server-side.
+    } catch (err) {
+        errorEl.textContent = humanizePhoneError(err.code) || err.message;
+        errorEl.classList.remove("hidden");
+    }
+}
+
+async function submitProfileName() {
+    const name = document.getElementById("profile-name-input").value.trim();
+    const errorEl = document.getElementById("profile-error");
+    errorEl.classList.add("hidden");
+
+    if (!name) {
+        errorEl.textContent = "Please enter your name.";
+        errorEl.classList.remove("hidden");
+        return;
+    }
+
+    const spinner = document.getElementById("profile-spinner");
+    const btn = document.getElementById("profile-submit-btn");
+    spinner.classList.remove("hidden");
+    btn.disabled = true;
+
+    try {
+        await apiFetch("/api/profile", { method: "POST", body: { name } });
+        enterApp();
+    } catch (err) {
+        errorEl.textContent = err.message;
+        errorEl.classList.remove("hidden");
+    } finally {
+        spinner.classList.add("hidden");
+        btn.disabled = false;
+    }
+}
+
+function enterApp() {
+    document.getElementById("bottom-nav").classList.remove("hidden");
+    document.getElementById("logout-btn").classList.remove("hidden");
+    showView("view-vertical-select");
+    setActiveNav("ai");
+}
+
+function wireAuthUI() {
+    document.getElementById("landing-cta-btn").addEventListener("click", () => {
+        showView("view-login");
+        showLoginStep("phone");
+    });
+    document.getElementById("login-back-btn").addEventListener("click", () => showView("view-landing"));
+
+    document.getElementById("phone-submit-btn").addEventListener("click", sendOtp);
+    document.getElementById("phone-input").addEventListener("keypress", (e) => { if (e.key === "Enter") sendOtp(); });
+
+    document.getElementById("otp-submit-btn").addEventListener("click", verifyOtp);
+    document.getElementById("otp-input").addEventListener("keypress", (e) => { if (e.key === "Enter") verifyOtp(); });
+    document.getElementById("otp-change-number-btn").addEventListener("click", () => {
+        state.confirmationResult = null;
+        document.getElementById("otp-error").classList.add("hidden");
+        showLoginStep("phone");
+    });
+    document.getElementById("otp-resend-btn").addEventListener("click", sendOtp);
+
+    document.getElementById("profile-submit-btn").addEventListener("click", submitProfileName);
+    document.getElementById("profile-name-input").addEventListener("keypress", (e) => { if (e.key === "Enter") submitProfileName(); });
+
+    document.getElementById("google-admin-btn").addEventListener("click", signInWithGoogleAdmin);
+
+    document.getElementById("logout-btn").addEventListener("click", () => signOut(auth));
+}
+
+async function handleAuthState(user) {
+    if (!user) {
+        document.getElementById("bottom-nav").classList.add("hidden");
+        document.getElementById("logout-btn").classList.add("hidden");
+        showView("view-landing");
+        return;
+    }
+
+    document.getElementById("logout-btn").classList.remove("hidden");
+
+    const provider = (user.providerData[0] && user.providerData[0].providerId) || "";
+
+    if (provider === "google.com") {
+        // Always upsert on Google sign-in — this is also where the backend
+        // enforces the ADMIN_EMAILS allowlist. A non-allowlisted Google
+        // account gets rejected and signed back out.
+        try {
+            await apiFetch("/api/profile", {
+                method: "POST",
+                body: { name: user.displayName || user.email || "Homnivas Team" },
+            });
+            enterApp();
+        } catch (err) {
+            await signOut(auth);
+            // signOut() triggers handleAuthState(null), which always lands on
+            // the landing page — re-assert the login screen afterwards so the
+            // person actually sees why their sign-in was rejected, instead of
+            // being silently bounced back to the marketing page.
+            showView("view-login");
+            showLoginStep("phone");
+            const errorEl = document.getElementById("google-error");
+            if (errorEl) {
+                errorEl.textContent = err.message;
+                errorEl.classList.remove("hidden");
+            }
+        }
+        return;
+    }
+
+    // Phone-auth partner: check whether their profile (display name) exists yet.
+    try {
+        const profile = await apiFetch("/api/profile");
+        if (profile.exists) {
+            enterApp();
+        } else {
+            showView("view-login");
+            showLoginStep("profile");
+        }
+    } catch (err) {
+        console.error("Couldn't load profile:", err);
+    }
+}
+
+onAuthStateChanged(auth, (user) => { handleAuthState(user); });
+
+// ---------------------------------------------------------------------------
+// Vertical picker
+// ---------------------------------------------------------------------------
+
+function initVerticalGrid() {
+    const grid = document.getElementById("vertical-grid");
+    grid.innerHTML = VERTICALS.map((v) => `
+        <button data-vertical="${v.code}" class="vertical-card text-left glass-card rounded-2xl overflow-hidden hover:border-gold/40 transition-all active:scale-[0.98]">
+            <div class="tab-${v.code} h-1.5 w-full"></div>
+            <div class="p-3.5">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="material-symbols-rounded text-${v.code} text-[22px]">${v.icon}</span>
+                    <span class="font-data text-[10px] text-slate-600">${v.code}</span>
+                </div>
+                <p class="font-display text-sm text-slate-100 leading-tight">${v.label}</p>
+                <p class="text-[10.5px] text-slate-500 mt-1 leading-snug">${v.desc}</p>
+            </div>
+        </button>
+    `).join("");
+
+    grid.querySelectorAll(".vertical-card").forEach((btn) => {
+        btn.addEventListener("click", () => createCase(btn.dataset.vertical));
+    });
+}
+
+async function createCase(vertical) {
+    try {
+        const res = await apiFetch("/api/cases", { method: "POST", body: { vertical } });
+        state.currentCaseId = res.case_id;
+        state.currentVertical = vertical;
+        openChatForCurrentCase({ resetGreeting: true });
+        showView("view-chat");
+        setActiveNav("ai");
+    } catch (err) {
+        alert(`Couldn't start a new file: ${err.message}`);
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Chat
+// ---------------------------------------------------------------------------
+
+function updateChatHeader(vertical, clientName, prog) {
+    const v = VERTICALS.find((x) => x.code === vertical);
+    const dot = document.getElementById("chat-vertical-dot");
+    dot.className = `w-2.5 h-2.5 rounded-full shrink-0 tab-${vertical}`;
+    document.getElementById("chat-vertical-label").textContent = v ? v.label : vertical;
+    document.getElementById("chat-client-label").textContent = clientName || "New Lead";
+
+    if (prog) {
+        document.getElementById("chat-progress-bar").style.width = `${prog.percent}%`;
+        document.getElementById("chat-progress-bar").className = `h-full rounded-full transition-all duration-500 tab-${vertical}`;
+        document.getElementById("chat-progress-text").textContent = `${prog.filled} / ${prog.total} fields captured · ${prog.percent}%`;
+        const pdfBtn = document.getElementById("chat-pdf-btn");
+        if (prog.filled > 0) {
+            pdfBtn.disabled = false;
+            pdfBtn.classList.remove("text-slate-700");
+            pdfBtn.classList.add("text-gold");
+        } else {
+            pdfBtn.disabled = true;
+            pdfBtn.classList.add("text-slate-700");
+            pdfBtn.classList.remove("text-gold");
+        }
+    }
+}
+
+function openChatForCurrentCase({ resetGreeting }) {
     const chatLog = document.getElementById("chat-log");
-    const msgId = "msg-" + Date.now();
+    if (resetGreeting) {
+        chatLog.innerHTML = "";
+        appendMessage(GREETINGS[state.currentVertical] || GREETINGS.PL, "ai", { trustedHtml: true });
+    }
+    updateChatHeader(state.currentVertical, null, { filled: 0, total: 1, percent: 0 });
+}
+
+async function resumeCase(caseId) {
+    try {
+        const res = await apiFetch(`/api/cases/${caseId}`);
+        state.currentCaseId = caseId;
+        state.currentVertical = res.vertical;
+
+        const chatLog = document.getElementById("chat-log");
+        chatLog.innerHTML = "";
+        if (res.messages && res.messages.length) {
+            res.messages.forEach((m) => appendMessage(m.text, m.role === "user" ? "user" : "ai"));
+        } else {
+            appendMessage(GREETINGS[res.vertical] || GREETINGS.PL, "ai", { trustedHtml: true });
+        }
+        updateChatHeader(res.vertical, res.data && res.data.name, res.progress);
+        showView("view-chat");
+        setActiveNav("ai");
+    } catch (err) {
+        alert(`Couldn't open this file: ${err.message}`);
+    }
+}
+
+function appendMessage(text, sender, { trustedHtml = false } = {}) {
+    const chatLog = document.getElementById("chat-log");
+    const msgId = "msg-" + Date.now() + "-" + Math.random().toString(36).slice(2, 7);
     const wrapper = document.createElement("div");
     wrapper.id = msgId;
-    
-    // Align user to the right, AI to the left
-    wrapper.className = "flex gap-2 " + (sender === "user" ? "justify-end" : "justify-start");
+    wrapper.className = "flex gap-2 fade-in " + (sender === "user" ? "justify-end" : "justify-start");
 
-    // Styling logic based on who is sending
-    let bubbleStyle = "glass-card text-slate-300 rounded-2xl rounded-tl-none p-3 text-xs max-w-[85%]";
-    
+    let bubbleStyle = "glass-card text-slate-300 rounded-2xl rounded-tl-none p-3 text-xs max-w-[85%] leading-relaxed";
     if (sender === "user") {
-        bubbleStyle = "bg-goldAccent text-darkBg font-medium rounded-2xl rounded-tr-none p-3 text-xs max-w-[85%] shadow-md";
+        bubbleStyle = "bg-gold text-ink font-medium rounded-2xl rounded-tr-none p-3 text-xs max-w-[85%] shadow-md leading-relaxed";
     } else if (sender === "ai-loading") {
         bubbleStyle = "glass-card text-slate-500 rounded-2xl rounded-tl-none p-3 text-xs animate-pulse";
     }
 
-    // Convert basic line breaks to HTML so lists and paragraphs look clean
-    const formattedText = text.replace(/\n/g, '<br>');
+    // Greeting strings are hardcoded by us (trusted) and may contain simple markup
+    // like <strong>. Everything else (AI replies, user input) is always escaped —
+    // never render raw HTML from the backend or from what someone typed.
+    const content = sender === "ai-loading"
+        ? text
+        : trustedHtml
+            ? text
+            : escapeHtml(text).replace(/\n/g, "<br>");
 
-    wrapper.innerHTML = `<div class="${bubbleStyle}">${formattedText}</div>`;
+    wrapper.innerHTML = `<div class="${bubbleStyle}">${content}</div>`;
     chatLog.appendChild(wrapper);
-    
-    // Auto-scroll to the newest message
     chatLog.scrollTop = chatLog.scrollHeight;
-    
     return msgId;
 }
 
-// Allow pressing "Enter" to send
-document.getElementById("chat-input").addEventListener("keypress", function(event) {
-    if (event.key === "Enter") {
-        event.preventDefault();
-        sendMessageToBackend();
+async function sendMessageToBackend() {
+    const inputField = document.getElementById("chat-input");
+    const messageText = inputField.value.trim();
+    if (!messageText || !state.currentCaseId) return;
+
+    appendMessage(messageText, "user");
+    inputField.value = "";
+    const loadingId = appendMessage("Thinking...", "ai-loading");
+
+    try {
+        const res = await apiFetch("/api/chat", {
+            method: "POST",
+            body: { case_id: state.currentCaseId, user_message: messageText, language: state.currentLanguage },
+        });
+        document.getElementById(loadingId).remove();
+        appendMessage(res.reply, "ai");
+        updateChatHeader(state.currentVertical, null, res.progress);
+    } catch (err) {
+        document.getElementById(loadingId).remove();
+        appendMessage(`Connection issue: ${err.message}. Please try again.`, "ai");
     }
-});
+}
+
+function wireChatUI() {
+    document.getElementById("chat-send-btn").addEventListener("click", sendMessageToBackend);
+    document.getElementById("chat-input").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            sendMessageToBackend();
+        }
+    });
+    document.getElementById("chat-details-btn").addEventListener("click", () => {
+        if (state.currentCaseId) openCaseDetail(state.currentCaseId);
+    });
+    document.getElementById("chat-pdf-btn").addEventListener("click", () => {
+        if (state.currentCaseId && !document.getElementById("chat-pdf-btn").disabled) {
+            triggerPdfDownload(state.currentCaseId);
+        }
+    });
+
+    document.querySelectorAll(".lang-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            state.currentLanguage = btn.dataset.lang;
+            document.querySelectorAll(".lang-btn").forEach((b) => {
+                b.classList.remove("bg-gold", "text-ink", "font-bold");
+                b.classList.add("text-slate-400");
+            });
+            btn.classList.add("bg-gold", "text-ink", "font-bold");
+            btn.classList.remove("text-slate-400");
+        });
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Clients list
+// ---------------------------------------------------------------------------
+
+async function loadClients() {
+    const listEl = document.getElementById("clients-list");
+    const emptyEl = document.getElementById("clients-empty");
+    const countEl = document.getElementById("clients-count");
+    listEl.innerHTML = `<p class="text-xs text-slate-600 font-data">Loading...</p>`;
+
+    try {
+        const res = await apiFetch("/api/cases");
+        const cases = res.cases || [];
+        countEl.textContent = `${cases.length} file${cases.length === 1 ? "" : "s"}`;
+
+        if (cases.length === 0) {
+            listEl.innerHTML = "";
+            emptyEl.classList.remove("hidden");
+            return;
+        }
+        emptyEl.classList.add("hidden");
+
+        listEl.innerHTML = cases.map((c) => `
+            <button data-case-id="${c.case_id}" class="client-row w-full text-left glass-card rounded-xl overflow-hidden flex hover:border-gold/40 transition-all active:scale-[0.99]">
+                <div class="tab-${c.vertical} w-1.5 shrink-0"></div>
+                <div class="flex-1 p-3 min-w-0">
+                    <div class="flex items-center justify-between gap-2">
+                        <p class="font-display text-sm text-slate-100 truncate">${escapeHtml(c.client_name)}</p>
+                        <span class="text-[9px] uppercase tracking-wider font-data text-${c.vertical} shrink-0">${c.vertical}</span>
+                    </div>
+                    <div class="flex items-center justify-between mt-1.5">
+                        <span class="text-[10px] text-slate-500">${c.stage_label}</span>
+                        <span class="text-[10px] font-data text-slate-600">${c.progress.percent}%</span>
+                    </div>
+                    <div class="w-full bg-slate-900/70 rounded-full h-1 mt-1 overflow-hidden">
+                        <div class="h-full rounded-full tab-${c.vertical}" style="width:${c.progress.percent}%"></div>
+                    </div>
+                </div>
+            </button>
+        `).join("");
+
+        listEl.querySelectorAll(".client-row").forEach((btn) => {
+            btn.addEventListener("click", () => openCaseDetail(btn.dataset.caseId));
+        });
+    } catch (err) {
+        listEl.innerHTML = `<p class="text-xs text-red-400">Couldn't load clients: ${escapeHtml(err.message)}</p>`;
+    }
+
+    document.querySelectorAll(".goto-vertical-select").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            showView("view-vertical-select");
+            setActiveNav("ai");
+        });
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Case detail
+// ---------------------------------------------------------------------------
+
+async function getSchema(vertical) {
+    if (state.schemaCache[vertical]) return state.schemaCache[vertical];
+    const res = await apiFetch(`/api/schema/${vertical}`);
+    state.schemaCache[vertical] = res.sections;
+    return res.sections;
+}
+
+async function openCaseDetail(caseId) {
+    try {
+        const caseRes = await apiFetch(`/api/cases/${caseId}`);
+        const sections = await getSchema(caseRes.vertical);
+
+        state.currentCaseId = caseId;
+        state.currentVertical = caseRes.vertical;
+
+        document.getElementById("detail-vertical-label").textContent = caseRes.vertical_label;
+        document.getElementById("detail-client-label").textContent = caseRes.data.name || "New Lead";
+
+        renderStageTracker(caseRes.vertical, caseRes.status);
+        renderDetailSections(sections, caseRes.data, caseRes.vertical);
+
+        showView("view-case-detail");
+        setActiveNav("clients");
+    } catch (err) {
+        alert(`Couldn't open this file: ${err.message}`);
+    }
+}
+
+function renderStageTracker(vertical, currentStatus) {
+    const el = document.getElementById("stage-tracker");
+    el.innerHTML = STAGES.map((s) => {
+        const filled = s.n <= currentStatus;
+        return `
+            <button data-stage="${s.n}" class="stage-dot relative z-10 flex flex-col items-center gap-1.5 flex-1">
+                <span class="w-[26px] h-[26px] rounded-full flex items-center justify-center text-[11px] font-data border-2
+                    ${filled ? `tab-${vertical} border-transparent text-ink font-bold` : "bg-ink border-slate-700 text-slate-600"}">
+                    ${filled ? "✓" : s.n}
+                </span>
+                <span class="text-[8.5px] uppercase tracking-wide ${filled ? `text-${vertical}` : "text-slate-600"} text-center leading-tight">${s.label}</span>
+            </button>
+        `;
+    }).join("");
+
+    el.querySelectorAll(".stage-dot").forEach((btn) => {
+        btn.addEventListener("click", async () => {
+            const newStatus = parseInt(btn.dataset.stage, 10);
+            try {
+                await apiFetch(`/api/cases/${state.currentCaseId}/status`, { method: "PATCH", body: { status: newStatus } });
+                renderStageTracker(vertical, newStatus);
+            } catch (err) {
+                alert(`Couldn't update stage: ${err.message}`);
+            }
+        });
+    });
+}
+
+function renderDetailSections(sections, data, vertical) {
+    const container = document.getElementById("detail-sections");
+    container.innerHTML = sections.map((section) => `
+        <div class="glass-card rounded-2xl p-4">
+            <p class="text-[10px] uppercase tracking-widest text-${vertical} mb-3">${section.section}</p>
+            <div class="space-y-3">
+                ${section.fields.map((f) => `
+                    <div>
+                        <label class="text-[10px] text-slate-500">${f.label}</label>
+                        <input type="text" data-field="${f.key}" value="${escapeHtml(data[f.key] || "")}"
+                            class="field-input w-full rounded-lg px-3 py-2 text-xs mt-1 text-slate-200 font-data placeholder:text-slate-700"
+                            placeholder="Not captured yet">
+                    </div>
+                `).join("")}
+            </div>
+        </div>
+    `).join("");
+}
+
+async function saveDetailChanges() {
+    const inputs = document.querySelectorAll("#detail-sections input[data-field]");
+    const fields = {};
+    inputs.forEach((input) => {
+        if (input.value.trim()) fields[input.dataset.field] = input.value.trim();
+    });
+
+    const btn = document.getElementById("detail-save-btn");
+    const originalText = btn.textContent;
+    btn.textContent = "Saving...";
+    btn.disabled = true;
+
+    try {
+        await apiFetch(`/api/cases/${state.currentCaseId}/data`, { method: "PATCH", body: { fields } });
+        btn.textContent = "Saved ✓";
+        setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 1200);
+    } catch (err) {
+        alert(`Couldn't save changes: ${err.message}`);
+        btn.textContent = originalText;
+        btn.disabled = false;
+    }
+}
+
+async function triggerPdfDownload(caseId) {
+    try {
+        const blob = await apiFetchBlob(`/api/cases/${caseId}/pdf`, { method: "POST" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `Homnivas-${state.currentVertical || "infosheet"}-${caseId.slice(0, 6)}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+    } catch (err) {
+        alert(`Couldn't generate PDF: ${err.message}`);
+    }
+}
+
+function wireCaseDetailUI() {
+    document.getElementById("detail-back-btn").addEventListener("click", () => {
+        showView("view-clients");
+        setActiveNav("clients");
+        loadClients();
+    });
+    document.getElementById("detail-save-btn").addEventListener("click", saveDetailChanges);
+    document.getElementById("detail-pdf-btn").addEventListener("click", () => triggerPdfDownload(state.currentCaseId));
+    document.getElementById("detail-chat-btn").addEventListener("click", () => resumeCase(state.currentCaseId));
+}
+
+// ---------------------------------------------------------------------------
+// Bottom nav
+// ---------------------------------------------------------------------------
+
+function wireBottomNav() {
+    document.querySelectorAll(".nav-btn").forEach((btn) => {
+        btn.addEventListener("click", () => {
+            const key = btn.dataset.nav;
+            setActiveNav(key);
+            if (key === "ai") {
+                showView("view-vertical-select");
+            } else if (key === "clients") {
+                showView("view-clients");
+                loadClients();
+            } else if (key === "wallet") {
+                showView("view-wallet");
+            }
+        });
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Boot
+// ---------------------------------------------------------------------------
+
+wireAuthUI();
+initVerticalGrid();
+wireChatUI();
+wireCaseDetailUI();
+wireBottomNav();

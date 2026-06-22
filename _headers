@@ -1,0 +1,19 @@
+# Cloudflare Pages headers config.
+# https://developers.cloudflare.com/pages/configuration/headers/
+
+# The service worker MUST be revalidated on every load, or browsers/edge
+# cache can keep serving a stale sw.js and partners stop getting app
+# updates. This is the most common PWA-on-a-CDN footgun.
+/sw.js
+  Cache-Control: no-cache
+
+# Same reasoning for the Firebase config — if you ever rotate it, you don't
+# want it stuck behind a long-lived cache.
+/firebase-config.js
+  Cache-Control: no-cache
+
+# Baseline security headers for every page/asset.
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin

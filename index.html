@@ -6,91 +6,379 @@
     <title>Homnivas Finance Network</title>
     <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/32/merchant-account.png">
     <link rel="manifest" href="/manifest.json">
-    <meta name="theme-color" content="#020c1b">
-    
+    <meta name="theme-color" content="#050b16">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@24,400,0,0" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        darkBg: '#020c1b',
-                        glassBg: 'rgba(10, 25, 47, 0.7)',
-                        goldAccent: '#cca43b'
-                    }
+                        ink: '#050b16',
+                        glass: 'rgba(13, 27, 48, 0.65)',
+                        gold: '#c9a84c',
+                        pl: '#5e8fd6',
+                        bl: '#c97b4a',
+                        hl: '#6fb088',
+                        lap: '#b08fd1',
+                    },
+                    fontFamily: {
+                        display: ['Fraunces', 'serif'],
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['"IBM Plex Mono"', 'monospace'],
+                    },
                 }
             }
         }
     </script>
     <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-display { font-family: 'Fraunces', serif; font-optical-sizing: auto; }
+        .font-data { font-family: 'IBM Plex Mono', monospace; }
+
         .glass-card {
-            background: rgba(10, 25, 47, 0.6);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(204, 164, 59, 0.15);
+            background: rgba(13, 27, 48, 0.6);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1px solid rgba(201, 168, 76, 0.14);
         }
-        /* Fix icon alignment */
         .material-symbols-rounded {
             font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
+        .hairline { border-color: rgba(201, 168, 76, 0.14); }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: rgba(201,168,76,0.25); border-radius: 999px; }
+
+        .tab-PL { background: #5e8fd6; }
+        .tab-BL { background: #c97b4a; }
+        .tab-HL { background: #6fb088; }
+        .tab-LAP { background: #b08fd1; }
+        .text-PL { color: #5e8fd6; }
+        .text-BL { color: #c97b4a; }
+        .text-HL { color: #6fb088; }
+        .text-LAP { color: #b08fd1; }
+        .border-PL { border-color: #5e8fd6; }
+        .border-BL { border-color: #c97b4a; }
+        .border-HL { border-color: #6fb088; }
+        .border-LAP { border-color: #b08fd1; }
+
+        .view { display: none; }
+        .view.active { display: block; }
+
+        .nav-btn.active { color: #c9a84c; }
+        .nav-btn { color: #5b6b85; }
+
+        .stamp-rail::before {
+            content: '';
+            position: absolute;
+            top: 13px; left: 13px; right: 13px;
+            height: 1px;
+            background: repeating-linear-gradient(to right, rgba(201,168,76,0.3) 0 4px, transparent 4px 8px);
+            z-index: 0;
+        }
+        .field-input {
+            background: rgba(5, 11, 22, 0.6);
+            border: 1px solid rgba(201,168,76,0.18);
+        }
+        .field-input:focus { outline: none; border-color: rgba(201,168,76,0.55); }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(4px);} to { opacity: 1; transform: translateY(0);} }
+        .fade-in { animation: fadeIn 0.25s ease-out; }
     </style>
 </head>
-<body class="bg-darkBg text-slate-200 min-h-screen flex flex-col font-sans selection:bg-goldAccent/30">
+<body class="bg-ink text-slate-200 min-h-screen flex flex-col selection:bg-gold/30">
 
-    <header class="p-4 flex justify-between items-center border-b border-goldAccent/10 bg-darkBg/80 sticky top-0 z-50 backdrop-blur-md">
+    <!-- ===================== HEADER ===================== -->
+    <header class="px-4 py-3 flex justify-between items-center border-b hairline bg-ink/90 sticky top-0 z-50 backdrop-blur-md">
         <div class="flex items-center gap-2">
-            <span class="text-goldAccent font-bold text-lg tracking-wider">HOMNIVAS</span>
-            <span class="text-xs bg-goldAccent/10 text-goldAccent px-2 py-0.5 rounded border border-goldAccent/20">FINANCE</span>
+            <span class="text-gold font-display font-semibold text-lg tracking-wide">Homnivas</span>
+            <span class="text-[10px] uppercase tracking-widest bg-gold/10 text-gold px-2 py-0.5 rounded border border-gold/20">Finance</span>
         </div>
-        <div class="bg-slate-900/80 rounded-full p-1 border border-slate-800 text-xs flex gap-1 font-medium">
-            <button class="px-2.5 py-1 rounded-full bg-goldAccent text-darkBg font-bold transition-all">ENG</button>
-            <button class="px-2.5 py-1 rounded-full text-slate-400 hover:text-slate-200 transition-all">বাং</button>
-            <button class="px-2.5 py-1 rounded-full text-slate-400 hover:text-slate-200 transition-all">हिं</button>
+        <div class="flex items-center gap-2">
+            <div id="lang-toggle" class="bg-slate-900/80 rounded-full p-1 border hairline text-xs flex gap-1 font-medium">
+                <button data-lang="en" class="lang-btn px-2.5 py-1 rounded-full bg-gold text-ink font-bold transition-all">ENG</button>
+                <button data-lang="bn" class="lang-btn px-2.5 py-1 rounded-full text-slate-400 hover:text-slate-200 transition-all">বাং</button>
+                <button data-lang="hi" class="lang-btn px-2.5 py-1 rounded-full text-slate-400 hover:text-slate-200 transition-all">हिं</button>
+            </div>
+            <button id="logout-btn" class="hidden text-slate-500 hover:text-gold p-1.5 rounded-lg transition-colors" title="Sign out">
+                <span class="material-symbols-rounded text-[20px]">logout</span>
+            </button>
         </div>
     </header>
 
-    <main id="app-container" class="flex-1 p-4 max-w-md mx-auto w-full pb-24">
-        <div id="ai-chat-view" class="space-y-4">
-            <div class="glass-card rounded-2xl p-4 text-center space-y-2 mb-4">
-                <h2 class="text-goldAccent font-semibold text-lg">Welcome to HFN Partner Network</h2>
-                <p class="text-xs text-slate-400">Tell me about your client's profile or copy-paste their details below. I will instantly evaluate eligibility.</p>
+    <main id="app-container" class="flex-1 w-full max-w-md mx-auto pb-24">
+
+        <!-- ===================== LANDING (public) ===================== -->
+        <section id="view-landing" class="view active">
+            <div class="px-5 pt-10 pb-6 text-center fade-in">
+                <p class="text-[10px] uppercase tracking-[0.2em] text-gold/80 mb-3">Partner Network</p>
+                <p class="font-display text-3xl leading-tight text-slate-100">Bring the file.<br>We handle the rest.</p>
+                <p class="text-xs text-slate-500 mt-3 max-w-[280px] mx-auto leading-relaxed">
+                    AI Mitra turns a messy WhatsApp forward into a complete, lender-ready loan file — across Personal, Business, Home and Property loans.
+                </p>
             </div>
-            
-            <div id="chat-log" class="space-y-3 min-h-[250px] max-h-[400px] overflow-y-auto p-2">
-                <div class="flex gap-2">
-                    <div class="glass-card rounded-2xl rounded-tl-none p-3 text-xs max-w-[85%] text-slate-300">
-                        Hello! I am <strong>Homnivas Loan Mitra</strong>. How can I assist you with your Home, Business, or Personal Loan file today?
+
+            <div class="flex gap-2 px-5 mb-8 fade-in justify-center">
+                <span class="tab-PL text-ink text-[10px] font-data font-bold px-2.5 py-1 rounded-full">PL</span>
+                <span class="tab-BL text-ink text-[10px] font-data font-bold px-2.5 py-1 rounded-full">BL</span>
+                <span class="tab-HL text-ink text-[10px] font-data font-bold px-2.5 py-1 rounded-full">HL</span>
+                <span class="tab-LAP text-ink text-[10px] font-data font-bold px-2.5 py-1 rounded-full">LAP</span>
+            </div>
+
+            <div class="px-5 space-y-3 mb-8 fade-in">
+                <div class="glass-card rounded-2xl p-4 flex gap-3 items-start">
+                    <span class="material-symbols-rounded text-gold text-[22px]">hub</span>
+                    <div>
+                        <p class="font-display text-sm text-slate-100">One platform, four verticals</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">Stop juggling separate lender portals — Personal, Business, Home and Property loans, all from one dashboard.</p>
+                    </div>
+                </div>
+                <div class="glass-card rounded-2xl p-4 flex gap-3 items-start">
+                    <span class="material-symbols-rounded text-gold text-[22px]">forum</span>
+                    <div>
+                        <p class="font-display text-sm text-slate-100">AI does the paperwork</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">Talk to AI Mitra in Bengali, Hindi or English — it captures client details conversationally and fills the infosheet for you.</p>
+                    </div>
+                </div>
+                <div class="glass-card rounded-2xl p-4 flex gap-3 items-start">
+                    <span class="material-symbols-rounded text-gold text-[22px]">timeline</span>
+                    <div>
+                        <p class="font-display text-sm text-slate-100">Track every file</p>
+                        <p class="text-[11px] text-slate-500 mt-0.5 leading-relaxed">A 5-stage tracker — New Lead to Disbursed — so you and your client always know exactly where things stand.</p>
                     </div>
                 </div>
             </div>
 
-            <div class="flex items-center gap-2 mt-2">
-                <input type="text" id="chat-input" placeholder="Type or paste client file data here..." class="flex-1 bg-slate-900/60 border border-slate-800 focus:border-goldAccent/50 rounded-xl px-4 py-3 text-xs outline-none transition-all placeholder:text-slate-500 text-slate-200">
-                <button onclick="sendMessageToBackend()" class="bg-goldAccent hover:bg-goldAccent/90 text-darkBg p-3 rounded-xl transition-all font-bold text-xs shadow-lg shadow-goldAccent/10 flex items-center justify-center">
+            <div class="px-5 mb-8 fade-in">
+                <p class="text-[10px] uppercase tracking-widest text-slate-500 mb-3">How It Works</p>
+                <div class="space-y-3">
+                    <div class="flex gap-3 items-start">
+                        <span class="font-data text-gold text-xs mt-0.5">01</span>
+                        <p class="text-xs text-slate-300 leading-relaxed">Pick a vertical and tell AI Mitra about your client.</p>
+                    </div>
+                    <div class="flex gap-3 items-start">
+                        <span class="font-data text-gold text-xs mt-0.5">02</span>
+                        <p class="text-xs text-slate-300 leading-relaxed">AI Mitra captures their details conversationally — paste a WhatsApp message and it picks out what it needs.</p>
+                    </div>
+                    <div class="flex gap-3 items-start">
+                        <span class="font-data text-gold text-xs mt-0.5">03</span>
+                        <p class="text-xs text-slate-300 leading-relaxed">Download the lender-ready infosheet and track the file through to disbursal.</p>
+                    </div>
+                    <div class="flex gap-3 items-start">
+                        <span class="font-data text-gold text-xs mt-0.5">04</span>
+                        <p class="text-xs text-slate-300 leading-relaxed">Earn your commission as the file is sanctioned and disbursed — visible right in your Clients tab.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-5 pb-10 fade-in">
+                <button id="landing-cta-btn" class="w-full bg-gold hover:bg-gold/90 text-ink font-bold text-sm rounded-xl py-3.5 transition-all shadow-lg shadow-gold/10">
+                    Become a Partner
+                </button>
+                <p class="text-center text-[11px] text-slate-600 mt-4">Homnivas Finance Network &middot; West Bengal</p>
+            </div>
+        </section>
+
+        <!-- ===================== LOGIN ===================== -->
+        <section id="view-login" class="view px-4 pt-8">
+            <button id="login-back-btn" class="text-slate-500 hover:text-gold flex items-center gap-1 text-xs mb-6 transition-colors">
+                <span class="material-symbols-rounded text-[18px]">arrow_back</span> Back
+            </button>
+
+            <div class="text-center mb-8 fade-in">
+                <p class="font-display text-3xl text-slate-100">Partner Login</p>
+                <p class="text-xs text-slate-500 mt-2">Sign in with your mobile number.</p>
+            </div>
+
+            <!-- Phone step -->
+            <div id="login-step-phone" class="glass-card rounded-2xl p-5 fade-in">
+                <label class="text-[10px] uppercase tracking-widest text-slate-500">Mobile Number</label>
+                <div class="flex items-center field-input rounded-lg mt-1 overflow-hidden">
+                    <span class="px-3 py-2.5 text-sm text-slate-500 font-data border-r hairline">+91</span>
+                    <input type="tel" id="phone-input" inputmode="numeric" maxlength="10" placeholder="98XXXXXXXX"
+                        class="flex-1 bg-transparent px-3 py-2.5 text-sm text-slate-200 placeholder:text-slate-600 font-data outline-none">
+                </div>
+                <p id="phone-error" class="text-xs text-red-400 mt-2 hidden"></p>
+                <button id="phone-submit-btn"
+                    class="w-full bg-gold hover:bg-gold/90 text-ink font-bold text-sm rounded-lg py-3 mt-4 transition-all shadow-lg shadow-gold/10 flex items-center justify-center gap-2">
+                    <span id="phone-submit-label">Send OTP</span>
+                    <span id="phone-spinner" class="hidden material-symbols-rounded text-[18px] animate-spin">progress_activity</span>
+                </button>
+            </div>
+
+            <!-- OTP step -->
+            <div id="login-step-otp" class="hidden glass-card rounded-2xl p-5 fade-in">
+                <p class="text-xs text-slate-400 mb-1">Enter the 6-digit code sent to</p>
+                <p id="otp-phone-display" class="font-data text-sm text-gold mb-4">+91 XXXXXXXXXX</p>
+                <input type="text" id="otp-input" inputmode="numeric" maxlength="6" placeholder="••••••"
+                    class="field-input w-full rounded-lg px-3 py-3 text-lg tracking-[0.5em] text-center text-slate-200 placeholder:text-slate-700 font-data outline-none">
+                <p id="otp-error" class="text-xs text-red-400 mt-2 hidden"></p>
+                <button id="otp-submit-btn"
+                    class="w-full bg-gold hover:bg-gold/90 text-ink font-bold text-sm rounded-lg py-3 mt-4 transition-all shadow-lg shadow-gold/10 flex items-center justify-center gap-2">
+                    <span id="otp-submit-label">Verify &amp; Continue</span>
+                    <span id="otp-spinner" class="hidden material-symbols-rounded text-[18px] animate-spin">progress_activity</span>
+                </button>
+                <div class="flex justify-between mt-3">
+                    <button id="otp-change-number-btn" class="text-[11px] text-slate-500 hover:text-gold transition-colors">Change number</button>
+                    <button id="otp-resend-btn" class="text-[11px] text-slate-500 hover:text-gold transition-colors">Resend OTP</button>
+                </div>
+            </div>
+
+            <!-- Profile name step (first-time partners only) -->
+            <div id="login-step-profile" class="hidden glass-card rounded-2xl p-5 fade-in">
+                <p class="text-xs text-slate-400 mb-4">Almost there — what should we call you?</p>
+                <label class="text-[10px] uppercase tracking-widest text-slate-500">Full Name</label>
+                <input type="text" id="profile-name-input" placeholder="Your full name"
+                    class="field-input w-full rounded-lg px-3 py-2.5 text-sm mt-1 text-slate-200 placeholder:text-slate-600">
+                <p id="profile-error" class="text-xs text-red-400 mt-2 hidden"></p>
+                <button id="profile-submit-btn"
+                    class="w-full bg-gold hover:bg-gold/90 text-ink font-bold text-sm rounded-lg py-3 mt-4 transition-all shadow-lg shadow-gold/10 flex items-center justify-center gap-2">
+                    <span id="profile-submit-label">Continue</span>
+                    <span id="profile-spinner" class="hidden material-symbols-rounded text-[18px] animate-spin">progress_activity</span>
+                </button>
+            </div>
+
+            <div id="login-google-footer" class="text-center mt-6 fade-in">
+                <button id="google-admin-btn" class="text-[11px] text-slate-600 hover:text-slate-400 transition-colors">
+                    Homnivas team? Sign in with Google
+                </button>
+                <p id="google-error" class="text-xs text-red-400 mt-2 hidden"></p>
+            </div>
+
+            <div id="recaptcha-container"></div>
+        </section>
+
+        <!-- ===================== VERTICAL PICKER ===================== -->
+        <section id="view-vertical-select" class="view px-4 pt-6">
+            <div class="mb-5 fade-in">
+                <p class="font-display text-2xl text-slate-100">New File</p>
+                <p class="text-xs text-slate-500 mt-1">Choose a loan vertical to start intake with AI Mitra.</p>
+            </div>
+            <div id="vertical-grid" class="grid grid-cols-2 gap-3 fade-in"></div>
+        </section>
+
+        <!-- ===================== CHAT ===================== -->
+        <section id="view-chat" class="view px-4 pt-4">
+            <div class="glass-card rounded-2xl p-3 mb-3 fade-in">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-2 min-w-0">
+                        <span id="chat-vertical-dot" class="w-2.5 h-2.5 rounded-full shrink-0"></span>
+                        <div class="min-w-0">
+                            <p id="chat-vertical-label" class="text-[10px] uppercase tracking-widest text-slate-500 leading-none">Personal Loan</p>
+                            <p id="chat-client-label" class="font-display text-base text-slate-100 truncate leading-tight">New Lead</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-1 shrink-0">
+                        <button id="chat-details-btn" class="text-slate-400 hover:text-gold p-1.5 rounded-lg transition-colors" title="View &amp; edit details">
+                            <span class="material-symbols-rounded text-[20px]">tune</span>
+                        </button>
+                        <button id="chat-pdf-btn" disabled class="text-slate-700 p-1.5 rounded-lg transition-colors" title="Generate infosheet PDF">
+                            <span class="material-symbols-rounded text-[20px]">picture_as_pdf</span>
+                        </button>
+                    </div>
+                </div>
+                <div class="w-full bg-slate-900/70 rounded-full h-1.5 overflow-hidden">
+                    <div id="chat-progress-bar" class="h-full rounded-full transition-all duration-500" style="width:0%"></div>
+                </div>
+                <p id="chat-progress-text" class="text-[10px] text-slate-500 mt-1 font-data">0 / 0 fields captured</p>
+            </div>
+
+            <div id="chat-log" class="space-y-3 min-h-[280px] max-h-[420px] overflow-y-auto p-1"></div>
+
+            <div class="flex items-center gap-2 mt-3 sticky bottom-20">
+                <input type="text" id="chat-input" placeholder="Type or paste client file data here..."
+                    class="field-input flex-1 rounded-xl px-4 py-3 text-xs outline-none transition-all placeholder:text-slate-600 text-slate-200">
+                <button id="chat-send-btn" class="bg-gold hover:bg-gold/90 text-ink p-3 rounded-xl transition-all font-bold text-xs shadow-lg shadow-gold/10 flex items-center justify-center shrink-0">
                     <span class="material-symbols-rounded text-[20px]">send</span>
                 </button>
             </div>
-        </div>
+        </section>
+
+        <!-- ===================== CLIENTS LIST ===================== -->
+        <section id="view-clients" class="view px-4 pt-6">
+            <div class="mb-4 fade-in">
+                <p class="font-display text-2xl text-slate-100">Your Clients</p>
+                <p id="clients-count" class="text-xs text-slate-500 mt-1">&nbsp;</p>
+            </div>
+            <div id="clients-list" class="space-y-2.5 fade-in"></div>
+            <div id="clients-empty" class="hidden text-center py-16 fade-in">
+                <span class="material-symbols-rounded text-[40px] text-slate-700">folder_open</span>
+                <p class="text-sm text-slate-400 mt-3">No client files yet</p>
+                <p class="text-xs text-slate-600 mt-1 mb-4">Start a new file from AI Mitra to see it here.</p>
+                <button class="goto-vertical-select bg-gold/10 text-gold border border-gold/30 text-xs font-semibold px-4 py-2 rounded-lg">Start a New File</button>
+            </div>
+        </section>
+
+        <!-- ===================== CASE DETAIL ===================== -->
+        <section id="view-case-detail" class="view px-4 pt-4 pb-8">
+            <div class="flex items-center gap-2 mb-4">
+                <button id="detail-back-btn" class="text-slate-400 hover:text-gold p-1 rounded-lg transition-colors">
+                    <span class="material-symbols-rounded text-[22px]">arrow_back</span>
+                </button>
+                <div class="min-w-0">
+                    <p id="detail-vertical-label" class="text-[10px] uppercase tracking-widest text-slate-500 leading-none">Personal Loan</p>
+                    <p id="detail-client-label" class="font-display text-lg text-slate-100 truncate leading-tight">New Lead</p>
+                </div>
+            </div>
+
+            <!-- Stage stamp tracker -->
+            <div class="glass-card rounded-2xl p-4 mb-4 fade-in">
+                <div id="stage-tracker" class="relative flex justify-between items-start stamp-rail"></div>
+            </div>
+
+            <div id="detail-sections" class="space-y-4 fade-in"></div>
+
+            <div class="fixed bottom-16 left-0 right-0 max-w-md mx-auto px-4 pb-3 pt-2 bg-gradient-to-t from-ink via-ink to-transparent">
+                <div class="flex gap-2">
+                    <button id="detail-save-btn" class="flex-1 bg-gold hover:bg-gold/90 text-ink font-bold text-xs rounded-xl py-3 transition-all shadow-lg shadow-gold/10">
+                        Save Changes
+                    </button>
+                    <button id="detail-pdf-btn" class="flex-1 border border-gold/40 text-gold font-bold text-xs rounded-xl py-3 transition-all hover:bg-gold/10">
+                        Download PDF
+                    </button>
+                </div>
+                <button id="detail-chat-btn" class="w-full text-center text-[11px] text-slate-500 hover:text-gold mt-2 transition-colors">
+                    Continue chat with AI Mitra &rarr;
+                </button>
+            </div>
+        </section>
+
+        <!-- ===================== WALLET ===================== -->
+        <section id="view-wallet" class="view px-4 pt-16 text-center">
+            <div class="fade-in">
+                <span class="material-symbols-rounded text-[44px] text-gold/60">account_balance_wallet</span>
+                <p class="font-display text-2xl text-slate-100 mt-4">Wallet</p>
+                <p class="text-xs text-slate-500 mt-2 max-w-[260px] mx-auto leading-relaxed">
+                    Coming soon. Payout requests and cash-out tracking will appear here as your client files move through Sanctioned and Disbursed.
+                </p>
+            </div>
+        </section>
+
     </main>
 
-    <nav class="fixed bottom-0 left-0 right-0 border-t border-slate-800/80 bg-darkBg/90 backdrop-blur-lg py-2.5 z-50">
+    <!-- ===================== BOTTOM NAV ===================== -->
+    <nav id="bottom-nav" class="hidden fixed bottom-0 left-0 right-0 border-t hairline bg-ink/90 backdrop-blur-lg py-2.5 z-50">
         <div class="max-w-md mx-auto flex justify-around items-center text-center">
-            <button class="flex flex-col items-center gap-1 text-goldAccent group">
-                <span class="material-symbols-rounded text-[28px]">smart_toy</span>
+            <button data-nav="ai" class="nav-btn flex flex-col items-center gap-1 transition-colors">
+                <span class="material-symbols-rounded text-[26px]">smart_toy</span>
                 <span class="text-[10px] font-medium tracking-wide">AI Mitra</span>
             </button>
-            <button class="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300 group">
-                <span class="material-symbols-rounded text-[28px]">folder_managed</span>
+            <button data-nav="clients" class="nav-btn flex flex-col items-center gap-1 transition-colors">
+                <span class="material-symbols-rounded text-[26px]">folder_managed</span>
                 <span class="text-[10px] font-medium tracking-wide">Clients</span>
             </button>
-            <button class="flex flex-col items-center gap-1 text-slate-500 hover:text-slate-300 group">
-                <span class="material-symbols-rounded text-[28px]">account_balance_wallet</span>
+            <button data-nav="wallet" class="nav-btn flex flex-col items-center gap-1 transition-colors">
+                <span class="material-symbols-rounded text-[26px]">account_balance_wallet</span>
                 <span class="text-[10px] font-medium tracking-wide">Wallet</span>
             </button>
         </div>
     </nav>
 
-    <script src="/app.js"></script>
+    <script src="/firebase-config.js"></script>
+    <script type="module" src="/app.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {

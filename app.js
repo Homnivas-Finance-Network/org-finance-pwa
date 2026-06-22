@@ -52,6 +52,8 @@ const state = {
     confirmationResult: null,
     pendingPhoneE164: null,
     recaptchaVerifier: null,
+    currentRole: "partner",
+    staffCache: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -244,8 +246,8 @@ async function submitProfileName() {
     btn.disabled = true;
 
     try {
-        await apiFetch("/api/profile", { method: "POST", body: { name } });
-        enterApp();
+        const profile = await apiFetch("/api/profile", { method: "POST", body: { name } });
+        enterApp(profile.role);
     } catch (err) {
         errorEl.textContent = err.message;
         errorEl.classList.remove("hidden");
@@ -255,9 +257,12 @@ async function submitProfileName() {
     }
 }
 
-function enterApp() {
+function enterApp(role) {
+    state.currentRole = role || "partner";
     document.getElementById("bottom-nav").classList.remove("hidden");
     document.getElementById("logout-btn").classList.remove("hidden");
+    document.getElementById("profile-icon-btn").classList.remove("hidden");
+    document.getElementById("nav-team-btn").classList.toggle("hidden", state.currentRole === "partner");
     showView("view-vertical-select");
     setActiveNav("ai");
 }
@@ -293,6 +298,7 @@ async function handleAuthState(user) {
     if (!user) {
         document.getElementById("bottom-nav").classList.add("hidden");
         document.getElementById("logout-btn").classList.add("hidden");
+        document.getElementById("profile-icon-btn").classList.add("hidden");
         showView("view-landing");
         return;
     }
@@ -306,11 +312,11 @@ async function handleAuthState(user) {
         // enforces the ADMIN_EMAILS allowlist. A non-allowlisted Google
         // account gets rejected and signed back out.
         try {
-            await apiFetch("/api/profile", {
+            const profile = await apiFetch("/api/profile", {
                 method: "POST",
                 body: { name: user.displayName || user.email || "Homnivas Team" },
             });
-            enterApp();
+            enterApp(profile.role);
         } catch (err) {
             await signOut(auth);
             // signOut() triggers handleAuthState(null), which always lands on
@@ -332,7 +338,7 @@ async function handleAuthState(user) {
     try {
         const profile = await apiFetch("/api/profile");
         if (profile.exists) {
-            enterApp();
+            enterApp(profile.role);
         } else {
             showView("view-login");
             showLoginStep("profile");
@@ -518,6 +524,7 @@ function wireChatUI() {
             });
             btn.classList.add("bg-gold", "text-ink", "font-bold");
             btn.classList.remove("text-slate-400");
+            showLangToast(btn.dataset.lang);
         });
     });
 }
@@ -708,6 +715,95 @@ function wireCaseDetailUI() {
 }
 
 // ---------------------------------------------------------------------------
+// Team (staff/admin only)
+// ---------------------------------------------------------------------------
+
+function renderReassignSelect(p) {
+    const options = [`<option value="">— Unassigned —</option>`].concat(
+        (state.staffCache || []).map((s) => `<option value="${s.uid}" ${s.uid === p.tagged_to ? "selected" : ""}>${escapeHtml(s.name)} (${s.role})</option>`)
+    );
+    return `<select data-partner="${p.uid}" class="reassign-select field-input text-[11px] rounded-lg px-2 py-1.5 text-slate-300 max-w-[160px]">${options.join("")}</select>`;
+}
+
+async function loadTeamPartners() {
+    const listEl = document.getElementById("team-partners-list");
+    const emptyEl = document.getElementById("team-empty");
+    const countEl = document.getElementById("team-count");
+    listEl.innerHTML = `<p class="text-xs text-slate-600 font-data">Loading...</p>`;
+
+    try {
+        const isAdmin = state.currentRole === "admin";
+        if (isAdmin && !state.staffCache) {
+            const staffRes = await apiFetch("/api/team/staff");
+            state.staffCache = staffRes.staff || [];
+        }
+
+        const res = await apiFetch("/api/team/partners");
+        const partners = res.partners || [];
+        countEl.textContent = `${partners.length} partner${partners.length === 1 ? "" : "s"}`;
+
+        if (partners.length === 0) {
+            listEl.innerHTML = "";
+            emptyEl.classList.remove("hidden");
+            return;
+        }
+        emptyEl.classList.add("hidden");
+
+        const myUid = auth.currentUser ? auth.currentUser.uid : null;
+
+        listEl.innerHTML = partners.map((p) => {
+            const joined = p.created_at
+                ? new Date(p.created_at).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })
+                : "";
+            const isUnassigned = !p.tagged_to;
+            const isMine = p.tagged_to === myUid;
+
+            let rightContent;
+            if (isAdmin) {
+                rightContent = renderReassignSelect(p);
+            } else if (isUnassigned) {
+                rightContent = `<button data-claim="${p.uid}" class="claim-btn text-[11px] font-semibold text-gold border border-gold/30 rounded-lg px-3 py-1.5 hover:bg-gold/10 transition-colors">Claim</button>`;
+            } else {
+                const label = isMine ? "Tagged to you" : `Tagged to ${escapeHtml(p.tagged_to_name || "someone")}`;
+                rightContent = `<span class="text-[11px] ${isMine ? "text-gold" : "text-slate-500"} font-data">${label}</span>`;
+            }
+
+            return `
+                <div class="glass-card rounded-xl p-3.5 fade-in">
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <p class="font-display text-sm text-slate-100 truncate">${escapeHtml(p.name || "Unnamed")}</p>
+                            <p class="text-[11px] text-slate-500 font-data mt-0.5">${escapeHtml(p.phone || "")}</p>
+                        </div>
+                        <p class="text-[9px] text-slate-700 shrink-0">${joined}</p>
+                    </div>
+                    <div class="mt-2.5 flex justify-end">${rightContent}</div>
+                </div>
+            `;
+        }).join("");
+
+        listEl.querySelectorAll(".claim-btn").forEach((btn) => {
+            btn.addEventListener("click", () => tagPartner(btn.dataset.claim, myUid));
+        });
+        listEl.querySelectorAll(".reassign-select").forEach((sel) => {
+            sel.addEventListener("change", () => tagPartner(sel.dataset.partner, sel.value || null));
+        });
+    } catch (err) {
+        listEl.innerHTML = `<p class="text-xs text-red-400">Couldn't load partners: ${escapeHtml(err.message)}</p>`;
+    }
+}
+
+async function tagPartner(partnerUid, staffUid) {
+    try {
+        await apiFetch(`/api/team/partners/${partnerUid}/tag`, { method: "POST", body: { staff_uid: staffUid || null } });
+        loadTeamPartners();
+    } catch (err) {
+        alert(`Couldn't update tag: ${err.message}`);
+        loadTeamPartners(); // re-render to revert any optimistic UI drift (e.g. a <select> the user changed)
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Bottom nav
 // ---------------------------------------------------------------------------
 
@@ -723,9 +819,123 @@ function wireBottomNav() {
                 loadClients();
             } else if (key === "wallet") {
                 showView("view-wallet");
+            } else if (key === "team") {
+                showView("view-team");
+                loadTeamPartners();
             }
         });
     });
+}
+
+// ---------------------------------------------------------------------------
+// Profile view
+// ---------------------------------------------------------------------------
+
+async function openProfileView() {
+    showView("view-profile");
+
+    const nameInput = document.getElementById("profile-display-name");
+    const contactDiv = document.getElementById("profile-contact-info");
+    const badgeEl = document.getElementById("profile-role-badge");
+    const taggingCard = document.getElementById("profile-tagging-card");
+    const taggedToEl = document.getElementById("profile-tagged-to");
+
+    nameInput.value = "";
+    contactDiv.innerHTML = `<p class="text-xs text-slate-600 font-data">Loading...</p>`;
+
+    try {
+        const profile = await apiFetch("/api/profile");
+        if (!profile.exists) return;
+
+        nameInput.value = profile.name || "";
+
+        const roleLabels = { partner: "Partner", staff: "Backend Team", admin: "Admin" };
+        const roleColors = { partner: "border-pl/40 text-pl bg-pl/10", staff: "border-hl/40 text-hl bg-hl/10", admin: "border-gold/40 text-gold bg-gold/10" };
+        const role = profile.role || "partner";
+        badgeEl.className = `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold mb-6 fade-in border ${roleColors[role] || roleColors.partner}`;
+        badgeEl.textContent = roleLabels[role] || role;
+
+        if (profile.phone) {
+            contactDiv.innerHTML = `
+                <p class="text-[10px] text-slate-500">Mobile</p>
+                <p class="text-sm text-slate-200 font-data">${escapeHtml(profile.phone)}</p>`;
+        } else if (profile.email) {
+            contactDiv.innerHTML = `
+                <p class="text-[10px] text-slate-500">Email</p>
+                <p class="text-sm text-slate-200 font-data">${escapeHtml(profile.email)}</p>`;
+        } else {
+            contactDiv.innerHTML = `<p class="text-xs text-slate-600">No contact info on record.</p>`;
+        }
+
+        if (role === "partner") {
+            taggingCard.classList.remove("hidden");
+            taggedToEl.textContent = profile.tagged_to_name
+                ? `${profile.tagged_to_name}`
+                : "Not yet assigned";
+            taggedToEl.className = profile.tagged_to_name
+                ? "text-sm text-gold font-data mt-1"
+                : "text-sm text-slate-500 font-data mt-1 italic";
+        } else {
+            taggingCard.classList.add("hidden");
+        }
+    } catch (err) {
+        contactDiv.innerHTML = `<p class="text-xs text-red-400">${escapeHtml(err.message)}</p>`;
+    }
+}
+
+async function saveProfileName() {
+    const name = document.getElementById("profile-display-name").value.trim();
+    if (!name) return;
+
+    const btn = document.getElementById("profile-save-name-btn");
+    const label = document.getElementById("profile-save-label");
+    const spinner = document.getElementById("profile-save-spinner");
+    const feedback = document.getElementById("profile-save-feedback");
+
+    btn.disabled = true;
+    spinner.classList.remove("hidden");
+    feedback.classList.add("hidden");
+
+    try {
+        await apiFetch("/api/profile", { method: "POST", body: { name } });
+        feedback.classList.remove("hidden");
+        setTimeout(() => feedback.classList.add("hidden"), 2000);
+    } catch (err) {
+        alert(`Couldn't save name: ${err.message}`);
+    } finally {
+        btn.disabled = false;
+        spinner.classList.add("hidden");
+    }
+}
+
+function wireProfileUI() {
+    document.getElementById("profile-icon-btn").addEventListener("click", openProfileView);
+    document.getElementById("profile-back-btn").addEventListener("click", () => {
+        // Return to wherever they were — vertical select is the safe default
+        showView("view-vertical-select");
+        setActiveNav("ai");
+    });
+    document.getElementById("profile-save-name-btn").addEventListener("click", saveProfileName);
+    document.getElementById("profile-display-name").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") saveProfileName();
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Language toast
+// ---------------------------------------------------------------------------
+
+function showLangToast(langCode) {
+    const labels = { en: "English", bn: "বাংলা", hi: "हिंदी" };
+    const label = labels[langCode] || langCode;
+    const existing = document.getElementById("lang-toast");
+    if (existing) existing.remove();
+    const toast = document.createElement("div");
+    toast.id = "lang-toast";
+    toast.className = "fixed top-14 left-1/2 -translate-x-1/2 bg-slate-800 text-gold text-[11px] font-semibold px-3 py-1.5 rounded-full border border-gold/30 z-50 transition-opacity";
+    toast.textContent = `AI will respond in ${label}`;
+    document.body.appendChild(toast);
+    setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.remove(), 400); }, 1800);
 }
 
 // ---------------------------------------------------------------------------
@@ -737,3 +947,4 @@ initVerticalGrid();
 wireChatUI();
 wireCaseDetailUI();
 wireBottomNav();
+wireProfileUI();

@@ -17,10 +17,10 @@
 // ---------------------------------------------------------------------------
 
 window.HOMNIVAS_FIREBASE_CONFIG = {
-  apiKey: "PASTE_YOUR_API_KEY_HERE",
-  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
-  projectId: "PASTE_YOUR_PROJECT_ID",
-  storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID",
-  appId: "PASTE_YOUR_APP_ID",
+  apiKey: "AIzaSyA9-Say6gHQGTDtZQooIcLx3XEs82Dvihs",
+  authDomain: "homnivas-pwa.firebaseapp.com",
+  projectId: "homnivas-pwa",
+  storageBucket: "homnivas-pwa.firebasestorage.app",
+  messagingSenderId: "1059108924249",
+  appId: "1:1059108924249:web:d5e763ba0442c7b8cd7a48"
 };

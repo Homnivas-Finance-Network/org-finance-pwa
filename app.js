@@ -12,26 +12,15 @@ import {
 const BACKEND_API_URL = "https://org-finance-backend-1059108924249.us-central1.run.app";
 
 const VERTICALS = [
-    { code: "PL", label: "Personal Loan", icon: "person", desc: "Salaried & individual cash needs" },
-    { code: "BL", label: "Business Loan", icon: "storefront", desc: "Working capital & expansion" },
-    { code: "HL", label: "Home Loan", icon: "home", desc: "Purchase, construction & resale" },
-    { code: "LAP", label: "Loan Against Property", icon: "real_estate_agent", desc: "Unlock value from owned property" },
+    { code: "PL", icon: "person",           tKey: "pl" },
+    { code: "BL", icon: "storefront",        tKey: "bl" },
+    { code: "HL", icon: "home",              tKey: "hl" },
+    { code: "LAP", icon: "real_estate_agent", tKey: "lap" },
 ];
 
-const STAGES = [
-    { n: 1, label: "New Lead" },
-    { n: 2, label: "Documents" },
-    { n: 3, label: "Verification" },
-    { n: 4, label: "Sanctioned" },
-    { n: 5, label: "Disbursed" },
-];
+const STAGES = [1, 2, 3, 4, 5];
 
-const GREETINGS = {
-    PL: "Hello! I am <strong>Homnivas Loan Mitra</strong>. Let's get this Personal Loan file started — tell me about your client, or paste their details below.",
-    BL: "Hello! I am <strong>Homnivas Loan Mitra</strong>. Let's set up this Business Loan file — tell me about the business and owner, or paste their details below.",
-    HL: "Hello! I am <strong>Homnivas Loan Mitra</strong>. Let's start this Home Loan file — tell me about the client and the property, or paste their details below.",
-    LAP: "Hello! I am <strong>Homnivas Loan Mitra</strong>. Let's set up this Loan Against Property file — tell me about the client and the collateral property, or paste their details below.",
-};
+// Greetings are looked up via t('greet.XX') at runtime so they translate.
 
 // ---------------------------------------------------------------------------
 // Firebase
@@ -44,16 +33,48 @@ const auth = getAuth(firebaseApp);
 // State
 // ---------------------------------------------------------------------------
 
+// Translation helper — reads from window.HOMNIVAS_TRANSLATIONS
+const t = (key, vars) => {
+    const lang = state ? state.currentLanguage : "en";
+    const dict = (window.HOMNIVAS_TRANSLATIONS || {})[lang] || {};
+    const base = (window.HOMNIVAS_TRANSLATIONS || {}).en || {};
+    let val = dict[key] !== undefined ? dict[key] : (base[key] || key);
+    if (vars) Object.entries(vars).forEach(([k, v]) => { val = val.replaceAll("{" + k + "}", v); });
+    return val;
+};
+
+function applyTranslations(lang) {
+    document.querySelectorAll("[data-i18n]").forEach(el => {
+        const key = el.dataset.i18n;
+        const dict = (window.HOMNIVAS_TRANSLATIONS || {})[lang] || {};
+        const base = (window.HOMNIVAS_TRANSLATIONS || {}).en || {};
+        const val = dict[key] !== undefined ? dict[key] : (base[key] || "");
+        if (typeof val === "string" && val) el.textContent = val;
+    });
+    document.querySelectorAll("[data-i18n-ph]").forEach(el => {
+        const key = el.dataset.i18nPh;
+        const dict = (window.HOMNIVAS_TRANSLATIONS || {})[lang] || {};
+        const base = (window.HOMNIVAS_TRANSLATIONS || {}).en || {};
+        const val = dict[key] !== undefined ? dict[key] : (base[key] || "");
+        if (typeof val === "string" && val) el.placeholder = val;
+    });
+    // Re-render dynamic views so their JS-generated strings also update
+    if (document.getElementById("view-vertical-select").classList.contains("active")) initVerticalGrid();
+    const chatInput = document.getElementById("chat-input");
+    if (chatInput) chatInput.placeholder = t("chat.input_ph");
+}
+
 const state = {
     currentCaseId: null,
     currentVertical: null,
-    currentLanguage: "en",
+    currentLanguage: localStorage.getItem("hfn_lang") || "en",
     schemaCache: {},
     confirmationResult: null,
     pendingPhoneE164: null,
     recaptchaVerifier: null,
     currentRole: "partner",
     staffCache: null,
+    cachedProfile: null,
 };
 
 // ---------------------------------------------------------------------------
@@ -151,7 +172,7 @@ async function sendOtp() {
     errorEl.classList.add("hidden");
 
     if (!/^[6-9]\d{9}$/.test(raw)) {
-        errorEl.textContent = "Enter a valid 10-digit mobile number.";
+        errorEl.textContent = t("err.phone");
         errorEl.classList.remove("hidden");
         return;
     }
@@ -188,7 +209,7 @@ async function verifyOtp() {
     errorEl.classList.add("hidden");
 
     if (!/^\d{6}$/.test(code)) {
-        errorEl.textContent = "Enter the 6-digit code.";
+        errorEl.textContent = t("err.otp");
         errorEl.classList.remove("hidden");
         return;
     }
@@ -247,6 +268,7 @@ async function submitProfileName() {
 
     try {
         const profile = await apiFetch("/api/profile", { method: "POST", body: { name } });
+        state.cachedProfile = profile;
         enterApp(profile.role);
     } catch (err) {
         errorEl.textContent = err.message;
@@ -263,6 +285,15 @@ function enterApp(role) {
     document.getElementById("logout-btn").classList.remove("hidden");
     document.getElementById("profile-icon-btn").classList.remove("hidden");
     document.getElementById("nav-team-btn").classList.toggle("hidden", state.currentRole === "partner");
+    // Sync language button visual state from saved preference
+    document.querySelectorAll(".lang-btn").forEach(b => {
+        const active = b.dataset.lang === state.currentLanguage;
+        b.classList.toggle("bg-gold", active);
+        b.classList.toggle("text-ink", active);
+        b.classList.toggle("font-bold", active);
+        b.classList.toggle("text-slate-400", !active);
+    });
+    applyTranslations(state.currentLanguage);
     showView("view-vertical-select");
     setActiveNav("ai");
 }
@@ -316,6 +347,7 @@ async function handleAuthState(user) {
                 method: "POST",
                 body: { name: user.displayName || user.email || "Homnivas Team" },
             });
+            state.cachedProfile = profile;
             enterApp(profile.role);
         } catch (err) {
             await signOut(auth);
@@ -338,6 +370,7 @@ async function handleAuthState(user) {
     try {
         const profile = await apiFetch("/api/profile");
         if (profile.exists) {
+            state.cachedProfile = profile;
             enterApp(profile.role);
         } else {
             showView("view-login");
@@ -345,6 +378,8 @@ async function handleAuthState(user) {
         }
     } catch (err) {
         console.error("Couldn't load profile:", err);
+        // Don't block the user — try entering the app anyway
+        enterApp("partner");
     }
 }
 
@@ -364,8 +399,8 @@ function initVerticalGrid() {
                     <span class="material-symbols-rounded text-${v.code} text-[22px]">${v.icon}</span>
                     <span class="font-data text-[10px] text-slate-600">${v.code}</span>
                 </div>
-                <p class="font-display text-sm text-slate-100 leading-tight">${v.label}</p>
-                <p class="text-[10.5px] text-slate-500 mt-1 leading-snug">${v.desc}</p>
+                <p class="font-display text-sm text-slate-100 leading-tight">${t("vertical." + v.tKey + ".label")}</p>
+                <p class="text-[10.5px] text-slate-500 mt-1 leading-snug">${t("vertical." + v.tKey + ".desc")}</p>
             </div>
         </button>
     `).join("");
@@ -402,7 +437,7 @@ function updateChatHeader(vertical, clientName, prog) {
     if (prog) {
         document.getElementById("chat-progress-bar").style.width = `${prog.percent}%`;
         document.getElementById("chat-progress-bar").className = `h-full rounded-full transition-all duration-500 tab-${vertical}`;
-        document.getElementById("chat-progress-text").textContent = `${prog.filled} / ${prog.total} fields captured · ${prog.percent}%`;
+        document.getElementById("chat-progress-text").textContent = t("chat.fields", {f: prog.filled, t: prog.total, p: prog.percent});
         const pdfBtn = document.getElementById("chat-pdf-btn");
         if (prog.filled > 0) {
             pdfBtn.disabled = false;
@@ -420,7 +455,7 @@ function openChatForCurrentCase({ resetGreeting }) {
     const chatLog = document.getElementById("chat-log");
     if (resetGreeting) {
         chatLog.innerHTML = "";
-        appendMessage(GREETINGS[state.currentVertical] || GREETINGS.PL, "ai", { trustedHtml: true });
+        appendMessage(t("greet." + (state.currentVertical || "PL")), "ai", { trustedHtml: true });
     }
     updateChatHeader(state.currentVertical, null, { filled: 0, total: 1, percent: 0 });
 }
@@ -436,7 +471,7 @@ async function resumeCase(caseId) {
         if (res.messages && res.messages.length) {
             res.messages.forEach((m) => appendMessage(m.text, m.role === "user" ? "user" : "ai"));
         } else {
-            appendMessage(GREETINGS[res.vertical] || GREETINGS.PL, "ai", { trustedHtml: true });
+            appendMessage(t("greet." + (res.vertical || "PL")), "ai", { trustedHtml: true });
         }
         updateChatHeader(res.vertical, res.data && res.data.name, res.progress);
         showView("view-chat");
@@ -482,7 +517,7 @@ async function sendMessageToBackend() {
 
     appendMessage(messageText, "user");
     inputField.value = "";
-    const loadingId = appendMessage("Thinking...", "ai-loading");
+    const loadingId = appendMessage(t("chat.thinking"), "ai-loading");
 
     try {
         const res = await apiFetch("/api/chat", {
@@ -494,7 +529,7 @@ async function sendMessageToBackend() {
         updateChatHeader(state.currentVertical, null, res.progress);
     } catch (err) {
         document.getElementById(loadingId).remove();
-        appendMessage(`Connection issue: ${err.message}. Please try again.`, "ai");
+        appendMessage(text: `${t("chat.error")} (${err.message})`, "ai");
     }
 }
 
@@ -517,14 +552,17 @@ function wireChatUI() {
 
     document.querySelectorAll(".lang-btn").forEach((btn) => {
         btn.addEventListener("click", () => {
-            state.currentLanguage = btn.dataset.lang;
+            const lang = btn.dataset.lang;
+            state.currentLanguage = lang;
+            localStorage.setItem("hfn_lang", lang);
             document.querySelectorAll(".lang-btn").forEach((b) => {
                 b.classList.remove("bg-gold", "text-ink", "font-bold");
                 b.classList.add("text-slate-400");
             });
             btn.classList.add("bg-gold", "text-ink", "font-bold");
             btn.classList.remove("text-slate-400");
-            showLangToast(btn.dataset.lang);
+            applyTranslations(lang);
+            showLangToast(lang);
         });
     });
 }
@@ -542,7 +580,7 @@ async function loadClients() {
     try {
         const res = await apiFetch("/api/cases");
         const cases = res.cases || [];
-        countEl.textContent = `${cases.length} file${cases.length === 1 ? "" : "s"}`;
+        countEl.textContent = cases.length === 1 ? t("clients.files", {n: 1}) : t("clients.files_pl", {n: cases.length});
 
         if (cases.length === 0) {
             listEl.innerHTML = "";
@@ -619,15 +657,15 @@ async function openCaseDetail(caseId) {
 
 function renderStageTracker(vertical, currentStatus) {
     const el = document.getElementById("stage-tracker");
-    el.innerHTML = STAGES.map((s) => {
-        const filled = s.n <= currentStatus;
+    el.innerHTML = STAGES.map((n) => {
+        const filled = n <= currentStatus;
         return `
-            <button data-stage="${s.n}" class="stage-dot relative z-10 flex flex-col items-center gap-1.5 flex-1">
+            <button data-stage="${n}" class="stage-dot relative z-10 flex flex-col items-center gap-1.5 flex-1">
                 <span class="w-[26px] h-[26px] rounded-full flex items-center justify-center text-[11px] font-data border-2
                     ${filled ? `tab-${vertical} border-transparent text-ink font-bold` : "bg-ink border-slate-700 text-slate-600"}">
-                    ${filled ? "✓" : s.n}
+                    ${filled ? "✓" : n}
                 </span>
-                <span class="text-[8.5px] uppercase tracking-wide ${filled ? `text-${vertical}` : "text-slate-600"} text-center leading-tight">${s.label}</span>
+                <span class="text-[8.5px] uppercase tracking-wide ${filled ? `text-${vertical}` : "text-slate-600"} text-center leading-tight">${t("stage." + n)}</span>
             </button>
         `;
     }).join("");
@@ -672,13 +710,13 @@ async function saveDetailChanges() {
     });
 
     const btn = document.getElementById("detail-save-btn");
-    const originalText = btn.textContent;
-    btn.textContent = "Saving...";
+    const originalText = t("detail.save");
+    btn.textContent = t("detail.saving");
     btn.disabled = true;
 
     try {
         await apiFetch(`/api/cases/${state.currentCaseId}/data`, { method: "PATCH", body: { fields } });
-        btn.textContent = "Saved ✓";
+        btn.textContent = t("detail.saved");
         setTimeout(() => { btn.textContent = originalText; btn.disabled = false; }, 1200);
     } catch (err) {
         alert(`Couldn't save changes: ${err.message}`);
@@ -710,6 +748,9 @@ function wireCaseDetailUI() {
         loadClients();
     });
     document.getElementById("detail-save-btn").addEventListener("click", saveDetailChanges);
+    document.getElementById("detail-save-btn").textContent = t("detail.save");
+    document.getElementById("detail-pdf-btn").textContent = t("detail.pdf");
+    document.getElementById("detail-chat-btn").textContent = t("detail.chat");
     document.getElementById("detail-pdf-btn").addEventListener("click", () => triggerPdfDownload(state.currentCaseId));
     document.getElementById("detail-chat-btn").addEventListener("click", () => resumeCase(state.currentCaseId));
 }
@@ -762,9 +803,9 @@ async function loadTeamPartners() {
             if (isAdmin) {
                 rightContent = renderReassignSelect(p);
             } else if (isUnassigned) {
-                rightContent = `<button data-claim="${p.uid}" class="claim-btn text-[11px] font-semibold text-gold border border-gold/30 rounded-lg px-3 py-1.5 hover:bg-gold/10 transition-colors">Claim</button>`;
+                rightContent = `<button data-claim="${p.uid}" class="claim-btn text-[11px] font-semibold text-gold border border-gold/30 rounded-lg px-3 py-1.5 hover:bg-gold/10 transition-colors">${t("team.claim")}</button>`;
             } else {
-                const label = isMine ? "Tagged to you" : `Tagged to ${escapeHtml(p.tagged_to_name || "someone")}`;
+                const label = isMine ? t("team.tagged_you") : t("team.tagged_to", {name: escapeHtml(p.tagged_to_name || "someone")});
                 rightContent = `<span class="text-[11px] ${isMine ? "text-gold" : "text-slate-500"} font-data">${label}</span>`;
             }
 
@@ -831,55 +872,67 @@ function wireBottomNav() {
 // Profile view
 // ---------------------------------------------------------------------------
 
-async function openProfileView() {
-    showView("view-profile");
-
+function _renderProfileData(profile) {
+    if (!profile) return;
     const nameInput = document.getElementById("profile-display-name");
     const contactDiv = document.getElementById("profile-contact-info");
     const badgeEl = document.getElementById("profile-role-badge");
     const taggingCard = document.getElementById("profile-tagging-card");
     const taggedToEl = document.getElementById("profile-tagged-to");
 
-    nameInput.value = "";
-    contactDiv.innerHTML = `<p class="text-xs text-slate-600 font-data">Loading...</p>`;
+    nameInput.value = profile.name || "";
+
+    const roleColors = { partner: "border-pl/40 text-pl bg-pl/10", staff: "border-hl/40 text-hl bg-hl/10", admin: "border-gold/40 text-gold bg-gold/10" };
+    const role = profile.role || "partner";
+    badgeEl.className = `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold mb-6 fade-in border ${roleColors[role] || roleColors.partner}`;
+    badgeEl.textContent = t("profile.role." + role);
+
+    if (profile.phone) {
+        contactDiv.innerHTML = `
+            <p class="text-[10px] text-slate-500">${t("nav.clients") !== "क्लाइंट्स" ? "Mobile" : "Mobile"}</p>
+            <p class="text-sm text-slate-200 font-data">${escapeHtml(profile.phone)}</p>`;
+    } else if (profile.email) {
+        contactDiv.innerHTML = `
+            <p class="text-[10px] text-slate-500">Email</p>
+            <p class="text-sm text-slate-200 font-data">${escapeHtml(profile.email)}</p>`;
+    } else {
+        contactDiv.innerHTML = `<p class="text-xs text-slate-600">${t("profile.no_contact")}</p>`;
+    }
+
+    if (role === "partner") {
+        taggingCard.classList.remove("hidden");
+        const tagName = profile.tagged_to_name || "";
+        taggedToEl.textContent = tagName || t("profile.unassigned");
+        taggedToEl.className = tagName
+            ? "text-sm text-gold font-data mt-1"
+            : "text-sm text-slate-500 font-data mt-1 italic";
+    } else {
+        taggingCard.classList.add("hidden");
+    }
+}
+
+async function openProfileView() {
+    showView("view-profile");
+    const contactDiv = document.getElementById("profile-contact-info");
+    contactDiv.innerHTML = `<p class="text-xs text-slate-600 font-data">${t("profile.loading")}</p>`;
+
+    // Show cached data immediately for a snappy feel
+    if (state.cachedProfile) _renderProfileData(state.cachedProfile);
 
     try {
         const profile = await apiFetch("/api/profile");
-        if (!profile.exists) return;
-
-        nameInput.value = profile.name || "";
-
-        const roleLabels = { partner: "Partner", staff: "Backend Team", admin: "Admin" };
-        const roleColors = { partner: "border-pl/40 text-pl bg-pl/10", staff: "border-hl/40 text-hl bg-hl/10", admin: "border-gold/40 text-gold bg-gold/10" };
-        const role = profile.role || "partner";
-        badgeEl.className = `inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-semibold mb-6 fade-in border ${roleColors[role] || roleColors.partner}`;
-        badgeEl.textContent = roleLabels[role] || role;
-
-        if (profile.phone) {
-            contactDiv.innerHTML = `
-                <p class="text-[10px] text-slate-500">Mobile</p>
-                <p class="text-sm text-slate-200 font-data">${escapeHtml(profile.phone)}</p>`;
-        } else if (profile.email) {
-            contactDiv.innerHTML = `
-                <p class="text-[10px] text-slate-500">Email</p>
-                <p class="text-sm text-slate-200 font-data">${escapeHtml(profile.email)}</p>`;
-        } else {
-            contactDiv.innerHTML = `<p class="text-xs text-slate-600">No contact info on record.</p>`;
+        if (!profile || !profile.exists) {
+            contactDiv.innerHTML = `<p class="text-xs text-red-400">${t("profile.no_profile")}</p>`;
+            return;
         }
-
-        if (role === "partner") {
-            taggingCard.classList.remove("hidden");
-            taggedToEl.textContent = profile.tagged_to_name
-                ? `${profile.tagged_to_name}`
-                : "Not yet assigned";
-            taggedToEl.className = profile.tagged_to_name
-                ? "text-sm text-gold font-data mt-1"
-                : "text-sm text-slate-500 font-data mt-1 italic";
-        } else {
-            taggingCard.classList.add("hidden");
-        }
+        state.cachedProfile = profile;
+        _renderProfileData(profile);
     } catch (err) {
-        contactDiv.innerHTML = `<p class="text-xs text-red-400">${escapeHtml(err.message)}</p>`;
+        // If cached data is already showing, just log the refresh failure silently
+        if (!state.cachedProfile) {
+            contactDiv.innerHTML = `<p class="text-xs text-red-400">${escapeHtml(err.message)}</p>`;
+        }
+        console.warn("Profile refresh failed:", err.message);
     }
 }
 
@@ -915,6 +968,7 @@ function wireProfileUI() {
         showView("view-vertical-select");
         setActiveNav("ai");
     });
+    document.getElementById("profile-save-name-btn").textContent = t("profile.save");
     document.getElementById("profile-save-name-btn").addEventListener("click", saveProfileName);
     document.getElementById("profile-display-name").addEventListener("keypress", (e) => {
         if (e.key === "Enter") saveProfileName();
@@ -926,14 +980,12 @@ function wireProfileUI() {
 // ---------------------------------------------------------------------------
 
 function showLangToast(langCode) {
-    const labels = { en: "English", bn: "বাংলা", hi: "हिंदी" };
-    const label = labels[langCode] || langCode;
     const existing = document.getElementById("lang-toast");
     if (existing) existing.remove();
     const toast = document.createElement("div");
     toast.id = "lang-toast";
     toast.className = "fixed top-14 left-1/2 -translate-x-1/2 bg-slate-800 text-gold text-[11px] font-semibold px-3 py-1.5 rounded-full border border-gold/30 z-50 transition-opacity";
-    toast.textContent = `AI will respond in ${label}`;
+    toast.textContent = t("toast." + langCode);
     document.body.appendChild(toast);
     setTimeout(() => { toast.style.opacity = "0"; setTimeout(() => toast.remove(), 400); }, 1800);
 }
@@ -948,3 +1000,15 @@ wireChatUI();
 wireCaseDetailUI();
 wireBottomNav();
 wireProfileUI();
+
+// Apply saved language on page load (before auth state resolves)
+const _bootLang = localStorage.getItem("hfn_lang") || "en";
+state.currentLanguage = _bootLang;
+document.querySelectorAll(".lang-btn").forEach(b => {
+    const active = b.dataset.lang === _bootLang;
+    b.classList.toggle("bg-gold", active);
+    b.classList.toggle("text-ink", active);
+    b.classList.toggle("font-bold", active);
+    b.classList.toggle("text-slate-400", !active);
+});
+applyTranslations(_bootLang);

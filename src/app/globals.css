@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Base surfaces — cool near-black ink, not pure black. Reads as a
+     precision instrument (trading-terminal / ledger) rather than a
+     generic dark-mode app. */
+  --bg: #0a0e12;
+  --surface-1: #12171d;
+  --surface-2: #1a2129;
+  --border: #232b34;
+  --border-strong: #313c47;
+
+  --text-primary: #f1f4f7;
+  --text-secondary: #98a5b3;
+  --text-muted: #5c6773;
+
+  /* Semantic state colors — same naming convention as the flow diagram,
+     so anything ported between the two stays visually consistent. */
+  --bg-success: #0f2a20;
+  --text-success: #4ade9a;
+  --border-success: #1e4a38;
+
+  --bg-warning: #332608;
+  --text-warning: #f5b84d;
+  --border-warning: #54401a;
+
+  --bg-accent: #1b1730;
+  --text-accent: #b79cff;
+  --border-accent: #332b5c;
+
+  --bg-rev: #332006;
+  --text-rev: #f0a93b;
+  --border-rev: #54380f;
+
+  /* Signature gradient — violet (Pro/unlock) sweeping into teal
+     (growth/success). Used once, deliberately: the Arth Score ring. */
+  --gradient-score: linear-gradient(135deg, #8b7bff 0%, #33d6a6 100%);
+
+  /* Archetype identity colors — Step 3 personality reveal. Distinct from
+     the semantic state colors above; these are brand/identity, not status. */
+  --archetype-builder: #f0a93b;
+  --archetype-saver: #4ade9a;
+  --archetype-achiever: #b79cff;
+  --archetype-survivor: #5ec8e8;
+  --archetype-starter: #f5d76e;
+}
+
+* {
+  border-color: var(--border);
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono-figures {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Visible keyboard focus everywhere — accessibility floor, not optional */
+:focus-visible {
+  outline: 2px solid var(--text-accent);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

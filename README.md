@@ -1,6 +1,6 @@
 # Homnivas Arth — Frontend PWA
 
-Next.js 14 (App Router, static export) — the full 11-step flow: phone OTP →
+Next.js 14 (App Router, static export) — the full 11-step flow: phone OTP  →
 quiz → personality reveal → locked preview → ₹345 checkout → profile →
 document upload → AI analysis → Pro dashboard → 1-EMI / Loan-Against-FD
 offers. Talks to the `homnivas-finance-pro` backend for everything real

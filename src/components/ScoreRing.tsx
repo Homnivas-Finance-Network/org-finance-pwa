@@ -17,7 +17,7 @@ export function ScoreRing({ score = 0, locked = false, size = 176 }: ScoreRingPr
       <svg width={size} height={size} className="-rotate-90">
         <defs>
           <linearGradient id="score-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#8b7bff" />
+            <stop offset="0%" stopColor="#f0a93b" />
             <stop offset="100%" stopColor="#33d6a6" />
           </linearGradient>
         </defs>

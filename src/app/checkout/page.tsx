@@ -42,11 +42,11 @@ export default function CheckoutPage() {
         key: razorpayKeyId,
         amount: order.amount,
         currency: order.currency,
-        name: "Homnivas Arth",
+        name: "Homnivas Finance Network",
         description: "Homnivas Pro — one-time unlock",
         order_id: order.id,
         prefill: { contact: user?.phoneNumber ?? undefined },
-        theme: { color: "#8b7bff" },
+        theme: { color: "#f0a93b" },
         handler: () => {
           // Webhook on the backend confirms payment and flips isPro server-side —
           // this local flag just lets the UI move forward without waiting/polling.
@@ -94,7 +94,7 @@ export default function CheckoutPage() {
         </Card>
 
         <p className="mt-4 text-[12px] leading-relaxed text-text-muted">
-          Homnivas Arth is a technology platform and does not itself lend money. Analysis and
+          Homnivas Finance Network is a technology platform and does not itself lend money. Analysis and
           scores are informational and not a guarantee of loan approval. Any loan offers shown are
           from our lending partners and subject to their own approval process.
         </p>

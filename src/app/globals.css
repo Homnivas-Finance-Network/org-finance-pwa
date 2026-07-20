@@ -26,21 +26,25 @@
   --text-warning: #f5b84d;
   --border-warning: #54401a;
 
-  --bg-accent: #1b1730;
-  --text-accent: #b79cff;
-  --border-accent: #332b5c;
+  /* Brand gold — matches partner.homnivas.space (the "Apply Now" /
+     "Start Your Rescue" gold, not a generic accent pick). This is the
+     primary brand color, used for CTAs, links, and the Pro/unlock identity. */
+  --bg-accent: #332006;
+  --text-accent: #f0a93b;
+  --border-accent: #54380f;
 
   --bg-rev: #332006;
   --text-rev: #f0a93b;
   --border-rev: #54380f;
 
-  /* Signature gradient — violet (Pro/unlock) sweeping into teal
-     (growth/success). Used once, deliberately: the Arth Score ring. */
-  --gradient-score: linear-gradient(135deg, #8b7bff 0%, #33d6a6 100%);
+  /* Signature gradient — brand gold sweeping into teal (growth/success).
+     Used once, deliberately: the Arth Score ring. */
+  --gradient-score: linear-gradient(135deg, #f0a93b 0%, #33d6a6 100%);
 
   /* Archetype identity colors — Step 3 personality reveal. Distinct from
-     the semantic state colors above; these are brand/identity, not status. */
-  --archetype-builder: #f0a93b;
+     the semantic state colors above; these are brand/identity, not status.
+     Reassigned so none of the five collide visually with the brand gold. */
+  --archetype-builder: #e2734e;
   --archetype-saver: #4ade9a;
   --archetype-achiever: #b79cff;
   --archetype-survivor: #5ec8e8;

@@ -34,14 +34,14 @@ const monoFont = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Homnivas Arth — Know your money, fix your debt",
+  title: "Homnivas Finance Network — Know your money, fix your debt",
   description:
     "Take the 5-question quiz, see your financial personality, and get a real plan to clear your loans.",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
-    title: "Homnivas Arth",
+    title: "Homnivas Finance Network",
   },
 };
 

@@ -19,7 +19,7 @@ export default function RevealPage() {
   if (!archetype) return null;
 
   function handleShare() {
-    const text = `I'm a ${archetype} — just found out my financial personality on Homnivas Arth.`;
+    const text = `I'm a ${archetype} — just found out my financial personality on Homnivas Finance Network.`;
     if (navigator.share) {
       navigator.share({ text, url: window.location.origin }).catch(() => {});
     } else {

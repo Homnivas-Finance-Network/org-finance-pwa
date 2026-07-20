@@ -57,7 +57,7 @@ export default function LandingPage() {
       <div id={RECAPTCHA_CONTAINER_ID} />
 
       <p className="text-[13px] font-medium uppercase tracking-wider text-text-accent">
-        Homnivas Arth
+        Homnivas Finance Network
       </p>
       <h1 className="mt-2 font-display text-[32px] font-semibold leading-[1.15] text-text-primary">
         Know your money.

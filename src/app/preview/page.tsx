@@ -61,7 +61,7 @@ export default function PreviewPage() {
                 step={10000}
                 value={loanAmount}
                 onChange={(e) => setLoanAmount(Number(e.target.value))}
-                className="accent-[#8b7bff]"
+                className="accent-[#f0a93b]"
               />
             </label>
             <label className="flex flex-col gap-1.5">
@@ -76,7 +76,7 @@ export default function PreviewPage() {
                 step={6}
                 value={tenureMonths}
                 onChange={(e) => setTenureMonths(Number(e.target.value))}
-                className="accent-[#8b7bff]"
+                className="accent-[#f0a93b]"
               />
             </label>
             <label className="flex flex-col gap-1.5">
@@ -91,7 +91,7 @@ export default function PreviewPage() {
                 step={0.5}
                 value={rate}
                 onChange={(e) => setRate(Number(e.target.value))}
-                className="accent-[#8b7bff]"
+                className="accent-[#f0a93b]"
               />
             </label>
           </div>

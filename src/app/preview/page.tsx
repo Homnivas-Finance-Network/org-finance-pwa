@@ -104,6 +104,18 @@ export default function PreviewPage() {
           </div>
         </Card>
 
+        <LockOverlay label="1-EMI consolidation offer — unlock with Pro">
+          <Card>
+            <h2 className="font-display text-[15px] font-semibold">
+              Apply for 1-EMI consolidation
+            </h2>
+            <p className="mt-2 text-[13px] text-text-secondary">
+              Turn scattered loans into one lower monthly payment. Also unlocks a Loan Against FD
+              offer if you qualify.
+            </p>
+          </Card>
+        </LockOverlay>
+        
         <LockOverlay label="Budget breakdown — unlock with Pro">
           <Card>
             <h2 className="font-display text-[15px] font-semibold">Monthly budget</h2>

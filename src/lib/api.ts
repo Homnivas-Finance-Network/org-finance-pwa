@@ -41,6 +41,11 @@ export const api = {
     return res.json();
   },
 
+  devGrantPro: async () => {
+    const res = await authedFetch("/api/payments/dev-grant-pro", { method: "POST" });
+    return res.json();
+  },
+
   saveProfile: async (profile: {
     name: string;
     pan: string;

@@ -130,6 +130,18 @@ export default function PreviewPage() {
           </Card>
         </LockOverlay>
 
+        <LockOverlay label="1-EMI consolidation offer — unlock with Pro">
+          <Card>
+            <h2 className="font-display text-[15px] font-semibold">
+              Apply for 1-EMI consolidation
+            </h2>
+            <p className="mt-2 text-[13px] text-text-secondary">
+              Turn scattered loans into one lower monthly payment. Also unlocks a Loan Against FD
+              offer if you qualify.
+            </p>
+          </Card>
+        </LockOverlay>
+
         <Button onClick={() => router.push("/checkout")}>Unlock Homnivas Pro — ₹345</Button>
       </main>
     </>

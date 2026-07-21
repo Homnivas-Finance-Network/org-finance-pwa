@@ -64,6 +64,26 @@ export default function CheckoutPage() {
     }
   }
 
+  const isDevMode = process.env.NEXT_PUBLIC_DEV_MODE === "true";
+
+  async function handleDevSkip() {
+    setError(null);
+    setLoading(true);
+    try {
+      await api.devGrantPro();
+      setIsPro(true);
+      router.push("/profile-setup");
+    } catch (err) {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : "Dev bypass failed — check ALLOW_DEV_BYPASS is set on the backend."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" onReady={() => setRazorpayReady(true)} />
@@ -105,6 +125,15 @@ export default function CheckoutPage() {
           <Button onClick={handlePay} loading={loading} disabled={!razorpayReady}>
             Pay ₹345 securely
           </Button>
+          {isDevMode && (
+            <button
+              onClick={handleDevSkip}
+              disabled={loading}
+              className="mt-3 w-full rounded-card border border-dashed border-text-warning px-4 py-2.5 text-[12px] font-medium text-text-warning disabled:opacity-40"
+            >
+              ⚠ DEV: Skip payment (NEXT_PUBLIC_DEV_MODE=true)
+            </button>
+          )}
         </div>
       </main>
     </>

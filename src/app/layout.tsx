@@ -3,6 +3,7 @@ import localFont from "next/font/local";
 import "./globals.css";
 import { AuthProvider } from "@/context/AuthProvider";
 import { JourneyProvider } from "@/context/JourneyProvider";
+import { LocaleProvider } from "@/context/LocaleProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 
 // Self-hosted (not next/font/google) — no external fetch at build time,
@@ -61,12 +62,14 @@ export default function RootLayout({
         className={`${displayFont.variable} ${bodyFont.variable} ${monoFont.variable} font-body antialiased bg-bg text-text-primary`}
       >
         <AuthProvider>
-          <JourneyProvider>
-            <ServiceWorkerRegister />
-            <div className="mx-auto flex min-h-screen w-full max-w-md flex-col">
-              {children}
-            </div>
-          </JourneyProvider>
+          <LocaleProvider>
+            <JourneyProvider>
+              <ServiceWorkerRegister />
+              <div className="mx-auto flex min-h-screen w-full max-w-md flex-col">
+                {children}
+              </div>
+            </JourneyProvider>
+          </LocaleProvider>
         </AuthProvider>
       </body>
     </html>

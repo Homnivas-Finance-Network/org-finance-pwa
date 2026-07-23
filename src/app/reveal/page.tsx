@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useJourney } from "@/context/JourneyProvider";
+import { useLocale } from "@/context/LocaleProvider";
 import { ArchetypeCard } from "@/components/ArchetypeCard";
 import { Button } from "@/components/Button";
 import { ProgressDots } from "@/components/ProgressDots";
@@ -10,6 +11,7 @@ import { useEffect } from "react";
 export default function RevealPage() {
   const router = useRouter();
   const { archetype } = useJourney();
+  const { t } = useLocale();
 
   useEffect(() => {
     // Guard against landing here directly without having taken the quiz
@@ -19,7 +21,7 @@ export default function RevealPage() {
   if (!archetype) return null;
 
   function handleShare() {
-    const text = `I'm a ${archetype} — just found out my financial personality on Homnivas Finance Network.`;
+    const text = t("reveal.shareText", { archetype: archetype ?? "" });
     if (navigator.share) {
       navigator.share({ text, url: window.location.origin }).catch(() => {});
     } else {
@@ -32,7 +34,7 @@ export default function RevealPage() {
       <ProgressDots currentStep={3} />
       <main className="flex flex-1 flex-col px-6 py-8">
         <p className="text-center text-[13px] font-medium uppercase tracking-wider text-text-muted">
-          Quiz complete
+          {t("reveal.quizComplete")}
         </p>
 
         <div className="mt-6">
@@ -43,21 +45,19 @@ export default function RevealPage() {
           onClick={handleShare}
           className="mt-4 self-center text-[13px] font-medium text-text-accent underline underline-offset-2"
         >
-          Share your result
+          {t("reveal.shareResult")}
         </button>
 
         <div className="mt-8 flex-1">
           <p className="text-[13px] font-medium text-text-secondary">
-            Here&apos;s what {archetype}s usually don&apos;t know about themselves:
+            {t("reveal.whatArchetypesDontKnow", { archetype })}
           </p>
           <p className="mt-2 text-sm leading-relaxed text-text-secondary">
-            Your Arth Score — a real read on your CIBIL, EMIs, and spending, not a guess — is
-            waiting on the next screen. Most people who take this quiz have no idea what their
-            actual number is.
+            {t("reveal.arthScoreTeaser")}
           </p>
         </div>
 
-        <Button onClick={() => router.push("/preview")}>See my financial home</Button>
+        <Button onClick={() => router.push("/preview")}>{t("reveal.seeFinancialHome")}</Button>
       </main>
     </>
   );

@@ -1,4 +1,4 @@
-# Homnivas Finance Network — Frontend PWA
+# Homnivas Arth — Frontend PWA
 
 Next.js 14 (App Router, static export) — the full 11-step flow: phone OTP →
 quiz → personality reveal → locked preview → ₹345 checkout → profile →
@@ -9,8 +9,11 @@ and does no server-side logic of its own.
 
 ```
 src/
-  app/            One folder per screen (page.tsx), App Router
-  components/     ScoreRing, ArchetypeCard, OfferCards, AskArth, etc.
+  app/
+    page.tsx, quiz/, reveal/, preview/, checkout/, profile-setup/, upload/, analyzing/
+                     Steps 1-8 — linear, no tabs, deliberately a focused funnel, no shared layout
+    (app)/           Steps 9-11: dashboard, apply, advisor, profile — persistent bottom tab bar via (app)/layout.tsx, feels like the main app rather than a wizard. The "(app)" folder name doesn't appear in the URL — it's a Next.js route group, purely organizational.
+  components/     ScoreRing, ArchetypeCard, OfferCards, AskArth, BottomTabBar, etc.
   context/        AuthProvider (Firebase), JourneyProvider (quiz/analysis state)
   lib/            firebase.ts, api.ts (backend client), archetype.ts (quiz scoring)
 public/
@@ -83,11 +86,28 @@ tabular numerals so digits align in EMI tables). Fonts are self-hosted
 (`next/font/local`), not fetched from Google Fonts at build time — faster
 builds, no external dependency during CI.
 
+## Multi-language (English / Hindi / Bengali)
+
+Hand-rolled, not a library — `next-intl`/`next-i18next` lean on server components or middleware, neither of which works with static export. Instead: `src/lib/i18n/translations.ts` holds flat key-value dictionaries per language, `src/context/LocaleProvider.tsx` exposes a `t(key, vars?)` function with `{var}` interpolation, persisted to `localStorage`. Switcher lives on the landing page and the Profile tab.
+
+**Translation quality**: I wrote all three languages myself, aiming for natural phrasing rather than literal word-for-word translation. Every screen in the app is covered — quiz questions, archetype descriptions, checkout, legal disclaimer, all of it. That said, **this is a regulated financial product, and I'd get the legal disclaimer specifically (`checkout.legalDisclaimer` in each language) reviewed by a native speaker with financial/legal familiarity before launch** — that's the one string where a subtle mistranslation actually matters legally, unlike a quiz question where the worst case is slightly awkward phrasing.
+
+Adding a fourth language later: add one more object to `translations.ts` matching the exact same keys as `en`, add it to the `Locale` type and `LOCALE_LABELS`, done — no component changes needed since everything already reads through `t()`.
+
+## Score history
+
+`GET /api/analytics/history` on the backend exposes every past `/analyze` run as a time series (it was already being saved, just never read back). Shown on the Home tab as a small chart once there are 2+ analyses — hand-rolled SVG, not a chart library, consistent with `ScoreRing`/`BudgetBar`.
+
+
+
 ## Backend changes bundled with this frontend
 
-Two endpoints didn't exist yet and were added to `homnivas-finance-pro` to
+Several endpoints didn't exist yet and were added to `homnivas-finance-pro` to
 make this frontend actually work end-to-end — get the updated backend zip
 too, not just this one:
 
 - `POST /api/profile/setup` + `GET /api/profile/me` — Step 6 profile form had nowhere to save to before this.
-- `POST /api/analytics/ask` — the "Ask Arth" advisor on the dashboard, grounded in the user's actual latest analysis via OpenRouter.
+- `POST /api/analytics/ask` — the "Ask Arth" advisor, grounded in the user's actual latest analysis via OpenRouter.
+- `GET /api/analytics/history` — powers the score history chart on Home.
+- `POST /api/payments/dev-grant-pro` — testing-only Razorpay bypass, gated behind `ALLOW_DEV_BYPASS`.
+- `/api/analytics/analyze` now takes separate `cibilPassword` and `bankPassword` fields (CIBIL reports and bank statements often use different passwords), and rejects the analysis with a 422 if the extracted CIBIL holder name and bank account holder name don't plausibly match — prevents silently blending two different people's documents into one analysis.

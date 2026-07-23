@@ -1,16 +1,21 @@
+"use client";
+
+import { useLocale } from "@/context/LocaleProvider";
+
 interface BudgetBarProps {
   emis: number;
   livingExpenses: number;
   savings: number;
 }
 
-const SEGMENTS: { key: keyof Omit<BudgetBarProps, never>; label: string; colorVar: string }[] = [
-  { key: "emis", label: "EMIs", colorVar: "--text-warning" },
-  { key: "livingExpenses", label: "Living expenses", colorVar: "--text-accent" },
-  { key: "savings", label: "Savings", colorVar: "--text-success" },
+const SEGMENTS: { key: keyof BudgetBarProps; labelKey: string; colorVar: string }[] = [
+  { key: "emis", labelKey: "dashboard.emisLabel", colorVar: "--text-warning" },
+  { key: "livingExpenses", labelKey: "dashboard.livingExpensesLabel", colorVar: "--text-accent" },
+  { key: "savings", labelKey: "dashboard.savingsLabel", colorVar: "--text-success" },
 ];
 
 export function BudgetBar({ emis, livingExpenses, savings }: BudgetBarProps) {
+  const { t } = useLocale();
   const total = emis + livingExpenses + savings || 1;
   const values = { emis, livingExpenses, savings };
 
@@ -35,7 +40,7 @@ export function BudgetBar({ emis, livingExpenses, savings }: BudgetBarProps) {
                 className="h-2 w-2 rounded-full"
                 style={{ backgroundColor: `var(${seg.colorVar})` }}
               />
-              {seg.label}
+              {t(seg.labelKey)}
             </span>
             <span className="font-mono-figures text-text-primary">
               ₹{values[seg.key].toLocaleString("en-IN")}

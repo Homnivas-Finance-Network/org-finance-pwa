@@ -64,11 +64,17 @@ export const api = {
     return res.json();
   },
 
-  analyze: async (cibilPdf: File, bankStatementPdf: File, pdfPassword?: string) => {
+  analyze: async (
+    cibilPdf: File,
+    bankStatementPdf: File,
+    cibilPassword?: string,
+    bankPassword?: string
+  ) => {
     const form = new FormData();
     form.set("cibilPdf", cibilPdf);
     form.set("bankStatementPdf", bankStatementPdf);
-    if (pdfPassword) form.set("pdfPassword", pdfPassword);
+    if (cibilPassword) form.set("cibilPassword", cibilPassword);
+    if (bankPassword) form.set("bankPassword", bankPassword);
     const res = await authedFetch("/api/analytics/analyze", { method: "POST", body: form });
     return res.json();
   },
@@ -96,6 +102,11 @@ export const api = {
     const form = new FormData();
     form.set("question", question);
     const res = await authedFetch("/api/analytics/ask", { method: "POST", body: form });
+    return res.json();
+  },
+
+  getHistory: async () => {
+    const res = await authedFetch("/api/analytics/history");
     return res.json();
   },
 };

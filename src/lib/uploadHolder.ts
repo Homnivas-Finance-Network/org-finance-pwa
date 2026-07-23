@@ -5,7 +5,8 @@
 interface PendingUpload {
   cibilPdf: File;
   bankStatementPdf: File;
-  password: string;
+  cibilPassword: string;
+  bankPassword: string;
 }
 
 let pending: PendingUpload | null = null;

@@ -6,29 +6,36 @@ import Script from "next/script";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/context/AuthProvider";
 import { useJourney } from "@/context/JourneyProvider";
+import { useLocale } from "@/context/LocaleProvider";
 import { Button } from "@/components/Button";
 import { Card } from "@/components/Card";
 import { ProgressDots } from "@/components/ProgressDots";
 import { Check } from "lucide-react";
-
-const UNLOCKS = [
-  "Real Arth Score from your CIBIL report",
-  "AI advisor with context on your actual finances",
-  "Debt Avalanche payoff roadmap",
-  "1-EMI consolidation eligibility check",
-];
+import { FullScreenLoader } from "@/components/FullScreenLoader";
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { t } = useLocale();
+  const { user, loading: authLoading } = useAuth();
   const { setIsPro } = useJourney();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [razorpayReady, setRazorpayReady] = useState(false);
 
+  const UNLOCKS = [
+    t("checkout.unlock1"),
+    t("checkout.unlock2"),
+    t("checkout.unlock3"),
+    t("checkout.unlock4"),
+  ];
+
   useEffect(() => {
-    if (!user) router.replace("/");
-  }, [user, router]);
+    // Wait for Firebase to actually finish resolving auth state before
+    // deciding the user is logged out — otherwise there's a flash on every
+    // fresh page load where a genuinely logged-in user briefly looks
+    // logged-out and gets bounced to the landing page.
+    if (!authLoading && !user) router.replace("/");
+  }, [authLoading, user, router]);
 
   async function handlePay() {
     setError(null);
@@ -36,7 +43,7 @@ export default function CheckoutPage() {
     try {
       const order = await api.createOrder();
       const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
-      if (!razorpayKeyId) throw new Error("Payment isn't configured yet. Try again shortly.");
+      if (!razorpayKeyId) throw new Error(t("checkout.errorPaymentNotConfigured"));
 
       const rzp = new window.Razorpay({
         key: razorpayKeyId,
@@ -59,7 +66,7 @@ export default function CheckoutPage() {
       });
       rzp.open();
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Couldn't start checkout. Try again.");
+      setError(err instanceof ApiError ? err.message : t("checkout.errorCheckoutFailed"));
       setLoading(false);
     }
   }
@@ -84,21 +91,22 @@ export default function CheckoutPage() {
     }
   }
 
+  if (authLoading) return <FullScreenLoader label={t("checkout.checkingSession")} />;
+  if (!user) return null; // redirect above is in flight
+
   return (
     <>
       <Script src="https://checkout.razorpay.com/v1/checkout.js" onReady={() => setRazorpayReady(true)} />
       <ProgressDots currentStep={5} />
       <main className="flex flex-1 flex-col px-6 py-8">
         <h1 className="font-display text-[24px] font-semibold text-text-primary">
-          Unlock Homnivas Pro
+          {t("checkout.title")}
         </h1>
-        <p className="mt-1 text-sm text-text-secondary">
-          One-time payment. No subscription, no auto-renewal.
-        </p>
+        <p className="mt-1 text-sm text-text-secondary">{t("checkout.subtitle")}</p>
 
         <Card className="mt-6">
           <div className="flex items-baseline justify-between">
-            <span className="text-sm text-text-secondary">Homnivas Pro</span>
+            <span className="text-sm text-text-secondary">{t("checkout.planLabel")}</span>
             <span className="font-mono-figures text-2xl font-semibold text-text-primary">
               ₹345
             </span>
@@ -114,16 +122,14 @@ export default function CheckoutPage() {
         </Card>
 
         <p className="mt-4 text-[12px] leading-relaxed text-text-muted">
-          Homnivas Finance Network is a technology platform and does not itself lend money. Analysis and
-          scores are informational and not a guarantee of loan approval. Any loan offers shown are
-          from our lending partners and subject to their own approval process.
+          {t("checkout.legalDisclaimer")}
         </p>
 
         {error && <p className="mt-3 text-[13px] text-text-warning">{error}</p>}
 
         <div className="mt-auto pt-8">
           <Button onClick={handlePay} loading={loading} disabled={!razorpayReady}>
-            Pay ₹345 securely
+            {t("checkout.payButton")}
           </Button>
           {isDevMode && (
             <button

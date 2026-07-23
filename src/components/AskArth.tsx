@@ -4,6 +4,7 @@ import { useState, type FormEvent } from "react";
 import { Sparkles } from "lucide-react";
 import { Card } from "@/components/Card";
 import { api, ApiError } from "@/lib/api";
+import { useLocale } from "@/context/LocaleProvider";
 
 interface Exchange {
   question: string;
@@ -11,6 +12,7 @@ interface Exchange {
 }
 
 export function AskArth() {
+  const { t } = useLocale();
   const [question, setQuestion] = useState("");
   const [history, setHistory] = useState<Exchange[]>([]);
   const [loading, setLoading] = useState(false);
@@ -27,7 +29,7 @@ export function AskArth() {
       const result = await api.askAdvisor(asked);
       setHistory((h) => [...h, { question: asked, answer: result.answer }]);
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : "Arth is busy, try again shortly.");
+      setError(err instanceof ApiError ? err.message : t("advisor.errorBusy"));
     } finally {
       setLoading(false);
     }
@@ -37,11 +39,11 @@ export function AskArth() {
     <Card>
       <div className="flex items-center gap-2">
         <Sparkles size={16} className="text-text-accent" />
-        <h2 className="font-display text-[15px] font-semibold text-text-primary">Ask Arth</h2>
+        <h2 className="font-display text-[15px] font-semibold text-text-primary">
+          {t("advisor.askArthTitle")}
+        </h2>
       </div>
-      <p className="mt-1 text-[12px] text-text-muted">
-        Answers based on your actual numbers, not generic advice.
-      </p>
+      <p className="mt-1 text-[12px] text-text-muted">{t("advisor.askArthSubtitle")}</p>
 
       {history.length > 0 && (
         <div className="mt-4 flex flex-col gap-3">
@@ -64,7 +66,7 @@ export function AskArth() {
         <input
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Should I prepay my personal loan?"
+          placeholder={t("advisor.askPlaceholder")}
           className="flex-1 rounded-card border border-border-strong bg-surface-1 px-3.5 py-2.5 text-[13px] text-text-primary outline-none focus:border-text-accent placeholder:text-text-muted"
         />
         <button
@@ -72,7 +74,7 @@ export function AskArth() {
           disabled={loading}
           className="shrink-0 rounded-card bg-text-accent px-4 py-2.5 text-[13px] font-semibold text-bg disabled:opacity-40"
         >
-          {loading ? "…" : "Ask"}
+          {loading ? "…" : t("advisor.askButton")}
         </button>
       </form>
     </Card>

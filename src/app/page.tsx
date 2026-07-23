@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import type { ConfirmationResult } from "firebase/auth";
 import { sendOtp } from "@/lib/firebase";
 import { Button } from "@/components/Button";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { useLocale } from "@/context/LocaleProvider";
 
 const RECAPTCHA_CONTAINER_ID = "recaptcha-container";
 
 export default function LandingPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [phone, setPhone] = useState("");
   const [code, setCode] = useState("");
   const [stage, setStage] = useState<"phone" | "otp">("phone");
@@ -22,7 +25,7 @@ export default function LandingPage() {
     setError(null);
     const digits = phone.replace(/\D/g, "");
     if (digits.length !== 10) {
-      setError("Enter a 10-digit mobile number.");
+      setError(t("landing.errorInvalidPhone"));
       return;
     }
     setLoading(true);
@@ -31,7 +34,7 @@ export default function LandingPage() {
       setConfirmation(result);
       setStage("otp");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Couldn't send the code. Try again.");
+      setError(err instanceof Error ? err.message : t("landing.errorSendFailed"));
     } finally {
       setLoading(false);
     }
@@ -46,7 +49,7 @@ export default function LandingPage() {
       await confirmation.confirm(code);
       router.push("/quiz");
     } catch {
-      setError("That code didn't match. Check it and try again.");
+      setError(t("landing.errorInvalidCode"));
     } finally {
       setLoading(false);
     }
@@ -56,23 +59,28 @@ export default function LandingPage() {
     <main className="flex flex-1 flex-col justify-center px-6 py-12">
       <div id={RECAPTCHA_CONTAINER_ID} />
 
+      <div className="mb-6 flex justify-end">
+        <LanguageSwitcher />
+      </div>
+
       <p className="text-[13px] font-medium uppercase tracking-wider text-text-accent">
-        Homnivas Finance Network
+        {t("landing.brand")}
       </p>
       <h1 className="mt-2 font-display text-[32px] font-semibold leading-[1.15] text-text-primary">
-        Know your money.
+        {t("landing.headline1")}
         <br />
-        Fix your debt.
+        {t("landing.headline2")}
       </h1>
       <p className="mt-3 text-[15px] leading-relaxed text-text-secondary">
-        Five quick questions, your financial personality, and a real plan to clear what you owe.
-        No signup form — just your number.
+        {t("landing.subtitle")}
       </p>
 
       {stage === "phone" ? (
         <form onSubmit={handleSendOtp} className="mt-10 flex flex-col gap-4">
           <label className="flex flex-col gap-1.5">
-            <span className="text-[13px] font-medium text-text-secondary">Mobile number</span>
+            <span className="text-[13px] font-medium text-text-secondary">
+              {t("landing.mobileLabel")}
+            </span>
             <div className="flex items-center gap-2 rounded-card border border-border-strong bg-surface-1 px-4 py-3.5 focus-within:border-text-accent">
               <span className="font-mono-figures text-[15px] text-text-secondary">+91</span>
               <input
@@ -89,20 +97,20 @@ export default function LandingPage() {
           </label>
           {error && <p className="text-[13px] text-text-warning">{error}</p>}
           <Button type="submit" loading={loading}>
-            Send OTP
+            {t("landing.sendOtp")}
           </Button>
         </form>
       ) : (
         <form onSubmit={handleVerifyOtp} className="mt-10 flex flex-col gap-4">
           <label className="flex flex-col gap-1.5">
             <span className="text-[13px] font-medium text-text-secondary">
-              Code sent to +91 {phone}
+              {t("landing.codeSentTo", { phone })}
             </span>
             <input
               type="text"
               inputMode="numeric"
               autoComplete="one-time-code"
-              placeholder="6-digit code"
+              placeholder={t("landing.codePlaceholder")}
               value={code}
               onChange={(e) => setCode(e.target.value)}
               className="rounded-card border border-border-strong bg-surface-1 px-4 py-3.5 text-center font-mono-figures text-lg tracking-[0.3em] text-text-primary outline-none focus:border-text-accent placeholder:tracking-normal placeholder:text-text-muted"
@@ -111,14 +119,14 @@ export default function LandingPage() {
           </label>
           {error && <p className="text-[13px] text-text-warning">{error}</p>}
           <Button type="submit" loading={loading}>
-            Verify &amp; continue
+            {t("landing.verifyContinue")}
           </Button>
           <button
             type="button"
             onClick={() => setStage("phone")}
             className="text-[13px] text-text-muted underline underline-offset-2"
           >
-            Use a different number
+            {t("landing.useDifferentNumber")}
           </button>
         </form>
       )}

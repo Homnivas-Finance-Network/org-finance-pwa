@@ -2,106 +2,101 @@ import type { Archetype, QuizAnswers } from "./types";
 
 export interface QuizOption {
   value: string;
-  label: string;
+  labelKey: string;
   weights: Partial<Record<Archetype, number>>;
 }
 
 export interface QuizQuestion {
   key: keyof QuizAnswers;
-  prompt: string;
+  promptKey: string;
   options: QuizOption[];
 }
 
 export const QUIZ_QUESTIONS: QuizQuestion[] = [
   {
     key: "income",
-    prompt: "How would you describe your income right now?",
+    promptKey: "quiz.q1.prompt",
     options: [
-      { value: "steady", label: "Steady salary, same amount every month", weights: { Saver: 1, Builder: 1 } },
-      { value: "irregular", label: "Irregular — freelance, business, or commission", weights: { Survivor: 1, Achiever: 1 } },
-      { value: "new", label: "Just started earning, still figuring it out", weights: { Starter: 2 } },
-      { value: "multiple", label: "Multiple income sources, actively growing them", weights: { Achiever: 1, Builder: 1 } },
+      { value: "steady", labelKey: "quiz.q1.opt_steady", weights: { Saver: 1, Builder: 1 } },
+      { value: "irregular", labelKey: "quiz.q1.opt_irregular", weights: { Survivor: 1, Achiever: 1 } },
+      { value: "new", labelKey: "quiz.q1.opt_new", weights: { Starter: 2 } },
+      { value: "multiple", labelKey: "quiz.q1.opt_multiple", weights: { Achiever: 1, Builder: 1 } },
     ],
   },
   {
     key: "savingsHabit",
-    prompt: "When money hits your account, what usually happens first?",
+    promptKey: "quiz.q2.prompt",
     options: [
-      { value: "fixed-save", label: "A fixed chunk goes to savings before anything else", weights: { Saver: 2 } },
-      { value: "pay-emis", label: "I pay off EMIs and bills, save what's left", weights: { Survivor: 1 } },
-      { value: "reinvest", label: "I invest or reinvest it into something", weights: { Achiever: 1, Builder: 1 } },
-      { value: "runs-out", label: "Honestly, it goes out faster than it came in", weights: { Survivor: 1, Starter: 1 } },
+      { value: "fixed-save", labelKey: "quiz.q2.opt_fixed_save", weights: { Saver: 2 } },
+      { value: "pay-emis", labelKey: "quiz.q2.opt_pay_emis", weights: { Survivor: 1 } },
+      { value: "reinvest", labelKey: "quiz.q2.opt_reinvest", weights: { Achiever: 1, Builder: 1 } },
+      { value: "runs-out", labelKey: "quiz.q2.opt_runs_out", weights: { Survivor: 1, Starter: 1 } },
     ],
   },
   {
     key: "debtSituation",
-    prompt: "Which sounds most like you right now?",
+    promptKey: "quiz.q3.prompt",
     options: [
-      { value: "none", label: "No loans, I keep things simple", weights: { Saver: 1, Starter: 1 } },
-      { value: "one-planned", label: "One planned loan — home, car, or education", weights: { Builder: 2 } },
-      { value: "few-small", label: "A few small loans or EMIs running at once", weights: { Survivor: 1 } },
-      { value: "multiple-app-loans", label: "Juggling multiple app loans or credit cards", weights: { Survivor: 2 } },
+      { value: "none", labelKey: "quiz.q3.opt_none", weights: { Saver: 1, Starter: 1 } },
+      { value: "one-planned", labelKey: "quiz.q3.opt_one_planned", weights: { Builder: 2 } },
+      { value: "few-small", labelKey: "quiz.q3.opt_few_small", weights: { Survivor: 1 } },
+      { value: "multiple-app-loans", labelKey: "quiz.q3.opt_multiple_app_loans", weights: { Survivor: 2 } },
     ],
   },
   {
     key: "cibilAwareness",
-    prompt: "Your CIBIL score — be honest:",
+    promptKey: "quiz.q4.prompt",
     options: [
-      { value: "know-well", label: "I check it regularly, know it well", weights: { Builder: 1, Achiever: 1 } },
-      { value: "know-roughly", label: "I know roughly, haven't checked lately", weights: { Saver: 1 } },
-      { value: "no-idea", label: "No idea, never checked", weights: { Starter: 2 } },
-      { value: "worried", label: "I know it's not great and it worries me", weights: { Survivor: 2 } },
+      { value: "know-well", labelKey: "quiz.q4.opt_know_well", weights: { Builder: 1, Achiever: 1 } },
+      { value: "know-roughly", labelKey: "quiz.q4.opt_know_roughly", weights: { Saver: 1 } },
+      { value: "no-idea", labelKey: "quiz.q4.opt_no_idea", weights: { Starter: 2 } },
+      { value: "worried", labelKey: "quiz.q4.opt_worried", weights: { Survivor: 2 } },
     ],
   },
   {
     key: "goal",
-    prompt: "What would actually change things for you right now?",
+    promptKey: "quiz.q5.prompt",
     options: [
-      { value: "debt-free-plan", label: "A clear plan to get debt-free", weights: { Survivor: 2 } },
-      { value: "grow-more", label: "Growing what I already have", weights: { Achiever: 2 } },
-      { value: "first-cushion", label: "Building my first real financial cushion", weights: { Starter: 2 } },
-      { value: "money-work-harder", label: "Making my money work harder — fewer wasted EMIs", weights: { Builder: 2 } },
+      { value: "debt-free-plan", labelKey: "quiz.q5.opt_debt_free_plan", weights: { Survivor: 2 } },
+      { value: "grow-more", labelKey: "quiz.q5.opt_grow_more", weights: { Achiever: 2 } },
+      { value: "first-cushion", labelKey: "quiz.q5.opt_first_cushion", weights: { Starter: 2 } },
+      { value: "money-work-harder", labelKey: "quiz.q5.opt_money_work_harder", weights: { Builder: 2 } },
     ],
   },
 ];
 
 export const ARCHETYPE_META: Record<
   Archetype,
-  { emoji: string; tagline: string; description: string; colorVar: string }
+  { emoji: string; taglineKey: string; descriptionKey: string; colorVar: string }
 > = {
   Builder: {
     emoji: "🏗️",
-    tagline: "You build with intention",
-    description:
-      "You think in structures — planned loans, deliberate growth, a clear reason behind every EMI. Your risk is over-optimizing instead of just starting.",
+    taglineKey: "archetype.Builder.tagline",
+    descriptionKey: "archetype.Builder.description",
     colorVar: "archetype-builder",
   },
   Saver: {
     emoji: "💰",
-    tagline: "You protect first, spend second",
-    description:
-      "Savings come before anything else hits your account. Your risk is playing too safe when a calculated move could actually get you further, faster.",
+    taglineKey: "archetype.Saver.tagline",
+    descriptionKey: "archetype.Saver.description",
     colorVar: "archetype-saver",
   },
   Achiever: {
     emoji: "🚀",
-    tagline: "You're already in motion",
-    description:
-      "Multiple income streams, active reinvestment, growth on the mind. Your risk is moving fast enough that small leaks — fees, bad-rate EMIs — go unnoticed.",
+    taglineKey: "archetype.Achiever.tagline",
+    descriptionKey: "archetype.Achiever.description",
     colorVar: "archetype-achiever",
   },
   Survivor: {
     emoji: "🌊",
-    tagline: "You're managing more than most people see",
-    description:
-      "Juggling EMIs, staying afloat, doing the math every month. Nothing about that is a character flaw — it's a math problem, and math problems have solutions.",
+    taglineKey: "archetype.Survivor.tagline",
+    descriptionKey: "archetype.Survivor.description",
     colorVar: "archetype-survivor",
   },
   Starter: {
     emoji: "🌱",
-    tagline: "You're at the beginning, on purpose",
-    description:
-      "New income, new habits, no fixed patterns yet. That's an advantage — the habits you build in the next year matter more than the ones you're undoing.",
+    taglineKey: "archetype.Starter.tagline",
+    descriptionKey: "archetype.Starter.description",
     colorVar: "archetype-starter",
   },
 };

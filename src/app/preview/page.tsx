@@ -7,9 +7,11 @@ import { Card } from "@/components/Card";
 import { LockOverlay } from "@/components/LockOverlay";
 import { Button } from "@/components/Button";
 import { ProgressDots } from "@/components/ProgressDots";
+import { useLocale } from "@/context/LocaleProvider";
 
 export default function PreviewPage() {
   const router = useRouter();
+  const { t } = useLocale();
   const [loanAmount, setLoanAmount] = useState(500000);
   const [tenureMonths, setTenureMonths] = useState(36);
   const [rate, setRate] = useState(11.5);
@@ -25,31 +27,28 @@ export default function PreviewPage() {
       <main className="flex flex-1 flex-col gap-5 px-6 py-8">
         <div>
           <h1 className="font-display text-[22px] font-semibold text-text-primary">
-            Your financial home
+            {t("preview.title")}
           </h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            Some of this is free to use right now. The rest unlocks with Homnivas Pro.
-          </p>
+          <p className="mt-1 text-sm text-text-secondary">{t("preview.subtitle")}</p>
         </div>
 
         <Card className="flex flex-col items-center gap-3 py-8">
           <ScoreRing locked />
           <p className="text-center text-sm text-text-secondary">
-            Your real Arth Score comes from your actual CIBIL report and bank statement —
-            not a guess.
+            {t("preview.lockedScoreCaption")}
           </p>
         </Card>
 
         <Card>
           <h2 className="font-display text-[15px] font-semibold text-text-primary">
-            EMI calculator
+            {t("preview.emiCalculator")}
           </h2>
-          <p className="mt-1 text-[13px] text-text-muted">Free to use — try any numbers</p>
+          <p className="mt-1 text-[13px] text-text-muted">{t("preview.freeToUse")}</p>
 
           <div className="mt-4 flex flex-col gap-4">
             <label className="flex flex-col gap-1.5">
               <span className="flex justify-between text-[13px] text-text-secondary">
-                <span>Loan amount</span>
+                <span>{t("preview.loanAmount")}</span>
                 <span className="font-mono-figures text-text-primary">
                   ₹{loanAmount.toLocaleString("en-IN")}
                 </span>
@@ -66,8 +65,10 @@ export default function PreviewPage() {
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="flex justify-between text-[13px] text-text-secondary">
-                <span>Tenure</span>
-                <span className="font-mono-figures text-text-primary">{tenureMonths} months</span>
+                <span>{t("preview.tenure")}</span>
+                <span className="font-mono-figures text-text-primary">
+                  {tenureMonths} {t("preview.months")}
+                </span>
               </span>
               <input
                 type="range"
@@ -81,7 +82,7 @@ export default function PreviewPage() {
             </label>
             <label className="flex flex-col gap-1.5">
               <span className="flex justify-between text-[13px] text-text-secondary">
-                <span>Interest rate</span>
+                <span>{t("preview.interestRate")}</span>
                 <span className="font-mono-figures text-text-primary">{rate}%</span>
               </span>
               <input
@@ -97,52 +98,41 @@ export default function PreviewPage() {
           </div>
 
           <div className="mt-5 rounded-card border border-border-accent bg-bg-accent px-4 py-3 text-center">
-            <p className="text-[11px] uppercase tracking-wider text-text-accent">Monthly EMI</p>
+            <p className="text-[11px] uppercase tracking-wider text-text-accent">
+              {t("preview.monthlyEmi")}
+            </p>
             <p className="mt-1 font-mono-figures text-2xl font-semibold text-text-primary">
               ₹{Math.round(emi).toLocaleString("en-IN")}
             </p>
           </div>
         </Card>
 
-        <LockOverlay label="1-EMI consolidation offer — unlock with Pro">
+        <LockOverlay label={t("preview.budgetLocked")}>
           <Card>
-            <h2 className="font-display text-[15px] font-semibold">
-              Apply for 1-EMI consolidation
-            </h2>
-            <p className="mt-2 text-[13px] text-text-secondary">
-              Turn scattered loans into one lower monthly payment. Also unlocks a Loan Against FD
-              offer if you qualify.
-            </p>
-          </Card>
-        </LockOverlay>
-        
-        <LockOverlay label="Budget breakdown — unlock with Pro">
-          <Card>
-            <h2 className="font-display text-[15px] font-semibold">Monthly budget</h2>
+            <h2 className="font-display text-[15px] font-semibold">{t("preview.monthlyBudgetTitle")}</h2>
             <div className="mt-3 h-24 rounded bg-surface-2" />
           </Card>
         </LockOverlay>
 
-        <LockOverlay label="AI advisor & Debt Avalanche plan — unlock with Pro">
+        <LockOverlay label={t("preview.aiAdvisorLocked")}>
           <Card>
-            <h2 className="font-display text-[15px] font-semibold">Ask Arth anything</h2>
+            <h2 className="font-display text-[15px] font-semibold">{t("preview.askArthAnything")}</h2>
             <div className="mt-3 h-16 rounded bg-surface-2" />
           </Card>
         </LockOverlay>
 
-        <LockOverlay label="1-EMI consolidation offer — unlock with Pro">
+        <LockOverlay label={t("preview.oneEmiLocked")}>
           <Card>
             <h2 className="font-display text-[15px] font-semibold">
-              Apply for 1-EMI consolidation
+              {t("preview.applyOneEmi")}
             </h2>
             <p className="mt-2 text-[13px] text-text-secondary">
-              Turn scattered loans into one lower monthly payment. Also unlocks a Loan Against FD
-              offer if you qualify.
+              {t("preview.oneEmiLockedDesc")}
             </p>
           </Card>
         </LockOverlay>
 
-        <Button onClick={() => router.push("/checkout")}>Unlock Homnivas Pro — ₹345</Button>
+        <Button onClick={() => router.push("/checkout")}>{t("preview.unlockPro")}</Button>
       </main>
     </>
   );

@@ -64,18 +64,48 @@ export const api = {
     return res.json();
   },
 
+  getUploadUrls: async (): Promise<{
+    cibilUploadUrl: string;
+    cibilStoragePath: string;
+    bankUploadUrl: string;
+    bankStoragePath: string;
+  }> => {
+    const res = await authedFetch("/api/analytics/upload-urls", { method: "POST" });
+    return res.json();
+  },
+
+  /** PUT straight to the signed Cloud Storage URL — no auth header (the
+   * signature itself is the auth), no API_BASE prefix (it's an absolute
+   * storage.googleapis.com URL), and critically not routed through the
+   * backend at all, which is the whole point: this is how a 50MB file gets
+   * past Cloud Run's 32MB request limit — it never goes through Cloud Run. */
+  uploadToSignedUrl: async (url: string, file: File): Promise<void> => {
+    const res = await fetch(url, {
+      method: "PUT",
+      headers: { "Content-Type": "application/pdf" },
+      body: file,
+    });
+    if (!res.ok) {
+      throw new ApiError(res.status, `Upload failed (${res.status}). Check your connection and try again.`);
+    }
+  },
+
   analyze: async (
-    cibilPdf: File,
-    bankStatementPdf: File,
+    cibilStoragePath: string,
+    bankStoragePath: string,
     cibilPassword?: string,
     bankPassword?: string
   ) => {
-    const form = new FormData();
-    form.set("cibilPdf", cibilPdf);
-    form.set("bankStatementPdf", bankStatementPdf);
-    if (cibilPassword) form.set("cibilPassword", cibilPassword);
-    if (bankPassword) form.set("bankPassword", bankPassword);
-    const res = await authedFetch("/api/analytics/analyze", { method: "POST", body: form });
+    const res = await authedFetch("/api/analytics/analyze", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        cibilStoragePath,
+        bankStoragePath,
+        cibilPassword: cibilPassword || undefined,
+        bankPassword: bankPassword || undefined,
+      }),
+    });
     return res.json();
   },
 

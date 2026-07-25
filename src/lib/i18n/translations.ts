@@ -138,7 +138,8 @@ const en: Dict = {
 
   "upload.title": "Upload your documents",
   "upload.subtitle":
-    "Both are read once to build your dashboard, nothing is shared beyond that. CIBIL reports and bank statements often use different passwords — each has its own field below.",
+    "Both are read once to build your dashboard, nothing is shared beyond that. CIBIL reports and bank statements often use different passwords — each has its own field below. PDFs up to 50MB are supported.",
+  "upload.errorTooLarge": "That file is over 50MB. Try a smaller export or a shorter statement period.",
   "upload.cibilLabel": "CIBIL report",
   "upload.cibilHint": "Download free from the GPay or Cred app → Credit Score section",
   "upload.bankLabel": "Bank statement",
@@ -149,6 +150,7 @@ const en: Dict = {
   "upload.errorBothFilesNeeded": "Both files are needed to generate your dashboard.",
   "upload.generateButton": "Generate my dashboard",
 
+  "analyzing.uploading": "Uploading your documents…",
   "analyzing.msg1": "Scanning your CIBIL report…",
   "analyzing.msg2": "Extracting loan and EMI details…",
   "analyzing.msg3": "Analysing 6 months of spending…",
@@ -341,7 +343,8 @@ const hi: Dict = {
 
   "upload.title": "अपने दस्तावेज़ अपलोड करें",
   "upload.subtitle":
-    "दोनों को सिर्फ़ एक बार पढ़ा जाता है ताकि आपका डैशबोर्ड बन सके, इसके अलावा कहीं शेयर नहीं होता। CIBIL रिपोर्ट और बैंक स्टेटमेंट के पासवर्ड अक्सर अलग होते हैं — नीचे दोनों के लिए अलग फ़ील्ड है।",
+    "दोनों को सिर्फ़ एक बार पढ़ा जाता है ताकि आपका डैशबोर्ड बन सके, इसके अलावा कहीं शेयर नहीं होता। CIBIL रिपोर्ट और बैंक स्टेटमेंट के पासवर्ड अक्सर अलग होते हैं — नीचे दोनों के लिए अलग फ़ील्ड है। 50MB तक की PDF फ़ाइलें स्वीकार हैं।",
+  "upload.errorTooLarge": "यह फ़ाइल 50MB से बड़ी है। छोटा एक्सपोर्ट या कम अवधि का स्टेटमेंट आज़माएं।",
   "upload.cibilLabel": "CIBIL रिपोर्ट",
   "upload.cibilHint": "GPay या Cred ऐप से मुफ़्त डाउनलोड करें → Credit Score सेक्शन",
   "upload.bankLabel": "बैंक स्टेटमेंट",
@@ -352,6 +355,7 @@ const hi: Dict = {
   "upload.errorBothFilesNeeded": "आपका डैशबोर्ड बनाने के लिए दोनों फ़ाइलें ज़रूरी हैं।",
   "upload.generateButton": "मेरा डैशबोर्ड बनाएं",
 
+  "analyzing.uploading": "आपके दस्तावेज़ अपलोड हो रहे हैं…",
   "analyzing.msg1": "आपकी CIBIL रिपोर्ट स्कैन हो रही है…",
   "analyzing.msg2": "लोन और EMI की जानकारी निकाली जा रही है…",
   "analyzing.msg3": "6 महीने के खर्च का विश्लेषण हो रहा है…",
@@ -544,7 +548,8 @@ const bn: Dict = {
 
   "upload.title": "আপনার নথি আপলোড করুন",
   "upload.subtitle":
-    "আপনার ড্যাশবোর্ড তৈরি করতে দুটোই একবার পড়া হয়, এর বাইরে কোথাও শেয়ার করা হয় না। CIBIL রিপোর্ট আর ব্যাংক স্টেটমেন্টের পাসওয়ার্ড প্রায়ই আলাদা হয় — নিচে দুটোর জন্য আলাদা ঘর আছে।",
+    "আপনার ড্যাশবোর্ড তৈরি করতে দুটোই একবার পড়া হয়, এর বাইরে কোথাও শেয়ার করা হয় না। CIBIL রিপোর্ট আর ব্যাংক স্টেটমেন্টের পাসওয়ার্ড প্রায়ই আলাদা হয় — নিচে দুটোর জন্য আলাদা ঘর আছে। ৫০MB পর্যন্ত PDF সমর্থিত।",
+  "upload.errorTooLarge": "এই ফাইলটি ৫০MB-র বেশি। ছোট এক্সপোর্ট বা কম সময়ের স্টেটমেন্ট চেষ্টা করুন।",
   "upload.cibilLabel": "CIBIL রিপোর্ট",
   "upload.cibilHint": "GPay বা Cred অ্যাপ থেকে বিনামূল্যে ডাউনলোড করুন → Credit Score বিভাগ",
   "upload.bankLabel": "ব্যাংক স্টেটমেন্ট",
@@ -555,6 +560,7 @@ const bn: Dict = {
   "upload.errorBothFilesNeeded": "আপনার ড্যাশবোর্ড তৈরি করতে দুটো ফাইলই দরকার।",
   "upload.generateButton": "আমার ড্যাশবোর্ড তৈরি করুন",
 
+  "analyzing.uploading": "আপনার নথি আপলোড হচ্ছে…",
   "analyzing.msg1": "আপনার CIBIL রিপোর্ট স্ক্যান হচ্ছে…",
   "analyzing.msg2": "ঋণ ও EMI-র তথ্য বের করা হচ্ছে…",
   "analyzing.msg3": "৬ মাসের খরচ বিশ্লেষণ করা হচ্ছে…",

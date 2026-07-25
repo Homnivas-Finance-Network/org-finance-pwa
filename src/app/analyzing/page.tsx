@@ -8,7 +8,9 @@ import { useLocale } from "@/context/LocaleProvider";
 import { takePendingUpload } from "@/lib/uploadHolder";
 import { Button } from "@/components/Button";
 
-const MESSAGE_KEYS = [
+type Stage = "uploading" | "analyzing";
+
+const ANALYZING_MESSAGE_KEYS = [
   "analyzing.msg1",
   "analyzing.msg2",
   "analyzing.msg3",
@@ -20,15 +22,17 @@ export default function AnalyzingPage() {
   const router = useRouter();
   const { t } = useLocale();
   const { setAnalysis } = useJourney();
+  const [stage, setStage] = useState<Stage>("uploading");
   const [messageIndex, setMessageIndex] = useState(0);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (stage !== "analyzing") return;
     const interval = setInterval(() => {
-      setMessageIndex((i) => (i + 1) % MESSAGE_KEYS.length);
+      setMessageIndex((i) => (i + 1) % ANALYZING_MESSAGE_KEYS.length);
     }, 2200);
     return () => clearInterval(interval);
-  }, []);
+  }, [stage]);
 
   useEffect(() => {
     const pending = takePendingUpload();
@@ -39,18 +43,41 @@ export default function AnalyzingPage() {
     }
 
     let cancelled = false;
-    api
-      .analyze(pending.cibilPdf, pending.bankStatementPdf, pending.cibilPassword || undefined, pending.bankPassword || undefined)
-      .then((result) => {
+
+    async function run() {
+      try {
+        // Step 1: get signed upload URLs (also confirms isPro server-side)
+        const urls = await api.getUploadUrls();
+
+        // Step 2: upload both files straight to Storage — this is the part
+        // that lets a 50MB file work at all, since it bypasses Cloud Run
+        // entirely rather than going through the backend's request body.
+        await Promise.all([
+          api.uploadToSignedUrl(urls.cibilUploadUrl, pending!.cibilPdf),
+          api.uploadToSignedUrl(urls.bankUploadUrl, pending!.bankStatementPdf),
+        ]);
+
+        if (cancelled) return;
+        setStage("analyzing");
+
+        // Step 3: tell the backend to read those two objects out of Storage
+        // and run the actual analysis.
+        const result = await api.analyze(
+          urls.cibilStoragePath,
+          urls.bankStoragePath,
+          pending!.cibilPassword || undefined,
+          pending!.bankPassword || undefined
+        );
         if (cancelled) return;
         setAnalysis(result);
         router.push("/dashboard");
-      })
-      .catch((err) => {
+      } catch (err) {
         if (cancelled) return;
         setError(err instanceof ApiError ? err.message : t("analyzing.errorFallback"));
-      });
+      }
+    }
 
+    run();
     return () => {
       cancelled = true;
     };
@@ -74,7 +101,7 @@ export default function AnalyzingPage() {
     <main className="flex flex-1 flex-col items-center justify-center px-6 py-12 text-center">
       <div className="h-12 w-12 animate-spin rounded-full border-2 border-border-strong border-t-text-accent" />
       <p className="mt-8 font-display text-[17px] font-medium text-text-primary">
-        {t(MESSAGE_KEYS[messageIndex])}
+        {stage === "uploading" ? t("analyzing.uploading") : t(ANALYZING_MESSAGE_KEYS[messageIndex])}
       </p>
       <p className="mt-2 text-[13px] text-text-muted">{t("analyzing.estimate")}</p>
     </main>

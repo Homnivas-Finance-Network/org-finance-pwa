@@ -28,6 +28,17 @@ function FilePicker({
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const { t } = useLocale();
+  const [sizeError, setSizeError] = useState<string | null>(null);
+  const MAX_BYTES = 50 * 1024 * 1024;
+
+  function handleFileChange(f: File) {
+    if (f.size > MAX_BYTES) {
+      setSizeError(t("upload.errorTooLarge"));
+      return;
+    }
+    setSizeError(null);
+    onSelect(f);
+  }
 
   return (
     <Card>
@@ -45,7 +56,7 @@ function FilePicker({
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) onSelect(f);
+          if (f) handleFileChange(f);
         }}
       />
 
@@ -69,6 +80,8 @@ function FilePicker({
           <span className="text-[13px]">{t("upload.tapToSelect")}</span>
         </button>
       )}
+
+      {sizeError && <p className="mt-2 text-[12px] text-text-warning">{sizeError}</p>}
 
       {file && (
         <label className="mt-3 flex flex-col gap-1.5">

@@ -5,6 +5,7 @@ import { AuthProvider } from "@/context/AuthProvider";
 import { JourneyProvider } from "@/context/JourneyProvider";
 import { LocaleProvider } from "@/context/LocaleProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 // Self-hosted (not next/font/google) — no external fetch at build time,
 // works identically in every build environment including Cloudflare Pages.
@@ -65,6 +66,9 @@ export default function RootLayout({
           <LocaleProvider>
             <JourneyProvider>
               <ServiceWorkerRegister />
+              <div className="fixed right-3 top-3 z-20">
+                <LanguageSwitcher />
+              </div>
               <div className="mx-auto flex min-h-screen w-full max-w-md flex-col">
                 {children}
               </div>

@@ -1,28 +1,26 @@
 "use client";
 
 import { useLocale } from "@/context/LocaleProvider";
-import { LOCALE_LABELS, type Locale } from "@/lib/i18n/translations";
+import { type Locale } from "@/lib/i18n/translations";
 
-const LOCALES: Locale[] = ["en", "hi", "bn"];
+const LOCALE_ORDER: Locale[] = ["en", "hi", "bn"];
+const SHORT_LABELS: Record<Locale, string> = { en: "EN", hi: "हि", bn: "বা" };
 
 export function LanguageSwitcher() {
   const { locale, setLocale } = useLocale();
 
+  function cycleNext() {
+    const currentIndex = LOCALE_ORDER.indexOf(locale);
+    setLocale(LOCALE_ORDER[(currentIndex + 1) % LOCALE_ORDER.length]);
+  }
+
   return (
-    <div className="flex gap-1.5">
-      {LOCALES.map((loc) => (
-        <button
-          key={loc}
-          onClick={() => setLocale(loc)}
-          className={`rounded-full px-3 py-1 text-[12px] font-medium transition-colors ${
-            locale === loc
-              ? "bg-bg-accent text-text-accent border border-border-accent"
-              : "text-text-muted border border-border"
-          }`}
-        >
-          {LOCALE_LABELS[loc]}
-        </button>
-      ))}
-    </div>
+    <button
+      onClick={cycleNext}
+      aria-label="Switch language"
+      className="flex h-8 w-8 items-center justify-center rounded-full border border-border-accent bg-bg-accent text-[11px] font-semibold text-text-accent shadow-sm"
+    >
+      {SHORT_LABELS[locale]}
+    </button>
   );
 }

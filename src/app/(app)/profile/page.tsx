@@ -8,7 +8,6 @@ import { useAuth } from "@/context/AuthProvider";
 import { useLocale } from "@/context/LocaleProvider";
 import { Card } from "@/components/Card";
 import { FullScreenLoader } from "@/components/FullScreenLoader";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 
 interface ProfileData {
   name?: string;
@@ -42,14 +41,11 @@ export default function ProfilePage() {
 
   return (
     <main className="flex flex-1 flex-col gap-5 px-6 py-8 pb-4">
-      <div className="flex items-start justify-between">
-        <div>
-          <h1 className="font-display text-[22px] font-semibold text-text-primary">
-            {t("profile.title")}
-          </h1>
-          <p className="mt-1 text-sm text-text-secondary">{user?.phoneNumber}</p>
-        </div>
-        <LanguageSwitcher />
+      <div>
+        <h1 className="font-display text-[22px] font-semibold text-text-primary">
+          {t("profile.title")}
+        </h1>
+        <p className="mt-1 text-sm text-text-secondary">{user?.phoneNumber}</p>
       </div>
 
       <Card>

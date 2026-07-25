@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import type { ConfirmationResult } from "firebase/auth";
 import { sendOtp } from "@/lib/firebase";
 import { Button } from "@/components/Button";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useLocale } from "@/context/LocaleProvider";
 
 const RECAPTCHA_CONTAINER_ID = "recaptcha-container";
@@ -58,10 +57,6 @@ export default function LandingPage() {
   return (
     <main className="flex flex-1 flex-col justify-center px-6 py-12">
       <div id={RECAPTCHA_CONTAINER_ID} />
-
-      <div className="mb-6 flex justify-end">
-        <LanguageSwitcher />
-      </div>
 
       <p className="text-[13px] font-medium uppercase tracking-wider text-text-accent">
         {t("landing.brand")}

@@ -135,6 +135,15 @@ export const api = {
     return res.json();
   },
 
+  confirmNumbers: async (analysisId: string, confirmedMonthlySalary: number, confirmedTotalEmi: number) => {
+    const res = await authedFetch("/api/analytics/confirm", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ analysisId, confirmedMonthlySalary, confirmedTotalEmi }),
+    });
+    return res.json();
+  },
+
   getHistory: async () => {
     const res = await authedFetch("/api/analytics/history");
     return res.json();

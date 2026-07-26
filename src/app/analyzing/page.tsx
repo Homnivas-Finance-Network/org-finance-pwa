@@ -70,7 +70,7 @@ export default function AnalyzingPage() {
         );
         if (cancelled) return;
         setAnalysis(result);
-        router.push("/dashboard");
+        router.push("/confirm");
       } catch (err) {
         if (cancelled) return;
         setError(err instanceof ApiError ? err.message : t("analyzing.errorFallback"));

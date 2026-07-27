@@ -17,7 +17,10 @@ export function BottomTabBar() {
   const { t } = useLocale();
 
   return (
-    <nav className="sticky bottom-0 z-10 flex border-t border-border bg-surface-1/95 backdrop-blur">
+    <nav
+      className="fixed bottom-0 left-1/2 z-20 flex w-full max-w-md -translate-x-1/2 border-t border-border bg-surface-1/95 backdrop-blur"
+      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+    >
       {TABS.map(({ href, labelKey, icon: Icon }) => {
         const active = pathname === href;
         return (

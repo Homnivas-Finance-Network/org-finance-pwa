@@ -30,8 +30,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      <div className="flex-1 overflow-y-auto">{children}</div>
+      {/* <div className="flex-1 overflow-y-auto">{children}</div> */}
+      <div  className="flex-1 overflow-y-auto"  style={{ paddingBottom: "calc(64px + env(safe-area-inset-bottom))" }}>
+      {children}
+      </div>
       <BottomTabBar />
     </div>
+
+    
   );
 }

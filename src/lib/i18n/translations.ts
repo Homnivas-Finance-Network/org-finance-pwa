@@ -159,6 +159,17 @@ const en: Dict = {
   "analyzing.estimate": "Usually takes 10–20 seconds",
   "analyzing.errorFallback": "Something went wrong reading your documents. Try again.",
 
+  "confirm.title": "Check your numbers",
+  "confirm.subtitle": "Documents don't always tell the whole story — fix anything that's off before we finalize your plan.",
+  "confirm.emiWarning":
+    "As per your CIBIL report, we found this much in monthly EMIs. Some active loans don't report EMI amounts to CIBIL — if you have others not reflected here, enter your real total.",
+  "confirm.emiLabel": "Your actual total monthly EMI",
+  "confirm.incomeWarning":
+    "As per your bank statement, we found this much as income. Incentives, bonuses, or other recurring credits are often missed if they're not labeled as salary — enter your real total monthly income.",
+  "confirm.incomeLabel": "Your actual total monthly income",
+  "confirm.continueButton": "Confirm & see my dashboard",
+  "confirm.error": "Couldn't recalculate. Try again.",
+
   "dashboard.title": "Your financial home",
   "dashboard.subtitle": "Built from your actual documents.",
   "dashboard.cibilLabel": "CIBIL",
@@ -180,12 +191,12 @@ const en: Dict = {
     "No offers matched yet — this updates automatically if your CIBIL or FD status changes on a future re-analysis.",
 
   "advisor.title": "Advisor",
-  "advisor.subtitle": "Ask anything about your loans, EMIs, or credit — grounded in your real numbers.",
-  "advisor.askArthTitle": "Ask Arth",
-  "advisor.askArthSubtitle": "Answers based on your actual numbers, not generic advice.",
-  "advisor.askPlaceholder": "Should I prepay my personal loan?",
-  "advisor.askButton": "Ask",
-  "advisor.errorBusy": "Arth is busy, try again shortly.",
+  "advisor.subtitle": "Talk to our team directly for real human help.",
+  "advisor.whatsappTitle": "Chat with our team",
+  "advisor.whatsappDesc": "Questions about your loans, your dashboard, or anything else — a real person from our team replies on WhatsApp.",
+  "advisor.whatsappButton": "Chat on WhatsApp",
+  "advisor.whatsappPrefill": "Hi, I have a question about my Homnivas Finance Network account.",
+  "advisor.whatsappNotConfigured": "WhatsApp support isn't set up yet — check back shortly.",
 
   "profile.title": "Profile",
   "profile.nameLabel": "Name",
@@ -364,6 +375,17 @@ const hi: Dict = {
   "analyzing.estimate": "आमतौर पर 10–20 सेकंड लगते हैं",
   "analyzing.errorFallback": "आपके दस्तावेज़ पढ़ने में कुछ गड़बड़ हुई। फिर से कोशिश करें।",
 
+  "confirm.title": "अपने आंकड़े जांचें",
+  "confirm.subtitle": "दस्तावेज़ हमेशा पूरी कहानी नहीं बताते — योजना अंतिम करने से पहले जो गलत है उसे ठीक करें।",
+  "confirm.emiWarning":
+    "आपकी CIBIL रिपोर्ट के अनुसार, हमें इतनी मासिक EMI मिली। कुछ सक्रिय लोन CIBIL को EMI राशि नहीं बताते — अगर आपके पास और भी हैं जो यहाँ नहीं दिख रहे, तो अपना असली कुल योग डालें।",
+  "confirm.emiLabel": "आपकी असली कुल मासिक EMI",
+  "confirm.incomeWarning":
+    "आपके बैंक स्टेटमेंट के अनुसार, हमें इतनी आय मिली। इंसेंटिव, बोनस, या अन्य नियमित क्रेडिट अक्सर छूट जाते हैं अगर वे सैलरी के रूप में नहीं दिखते — अपनी असली कुल मासिक आय डालें।",
+  "confirm.incomeLabel": "आपकी असली कुल मासिक आय",
+  "confirm.continueButton": "पुष्टि करें और डैशबोर्ड देखें",
+  "confirm.error": "फिर से गणना नहीं हो सकी। फिर से कोशिश करें।",
+
   "dashboard.title": "आपका फाइनेंशियल होम",
   "dashboard.subtitle": "आपके असली दस्तावेज़ों से बना है।",
   "dashboard.cibilLabel": "CIBIL",
@@ -385,12 +407,12 @@ const hi: Dict = {
     "अभी कोई ऑफ़र मेल नहीं खाया — अगर भविष्य में दोबारा विश्लेषण में आपका CIBIL या FD स्टेटस बदलता है तो यह अपने आप अपडेट होगा।",
 
   "advisor.title": "सलाहकार",
-  "advisor.subtitle": "अपने लोन, EMI, या क्रेडिट के बारे में कुछ भी पूछें — आपके असली नंबरों पर आधारित।",
-  "advisor.askArthTitle": "Arth से पूछें",
-  "advisor.askArthSubtitle": "जवाब आपके असली नंबरों पर आधारित हैं, सामान्य सलाह नहीं।",
-  "advisor.askPlaceholder": "क्या मुझे अपना पर्सनल लोन जल्दी चुका देना चाहिए?",
-  "advisor.askButton": "पूछें",
-  "advisor.errorBusy": "Arth अभी व्यस्त है, थोड़ी देर बाद फिर कोशिश करें।",
+  "advisor.subtitle": "असली इंसानी मदद के लिए सीधे हमारी टीम से बात करें।",
+  "advisor.whatsappTitle": "हमारी टीम से चैट करें",
+  "advisor.whatsappDesc": "आपके लोन, डैशबोर्ड, या किसी भी चीज़ के बारे में सवाल — हमारी टीम का एक असली व्यक्ति WhatsApp पर जवाब देगा।",
+  "advisor.whatsappButton": "WhatsApp पर चैट करें",
+  "advisor.whatsappPrefill": "नमस्ते, मुझे अपने Homnivas Finance Network खाते के बारे में एक सवाल है।",
+  "advisor.whatsappNotConfigured": "WhatsApp सपोर्ट अभी सेट नहीं है — थोड़ी देर बाद देखें।",
 
   "profile.title": "प्रोफ़ाइल",
   "profile.nameLabel": "नाम",
@@ -569,6 +591,17 @@ const bn: Dict = {
   "analyzing.estimate": "সাধারণত ১০–২০ সেকেন্ড লাগে",
   "analyzing.errorFallback": "আপনার নথি পড়তে কিছু ভুল হয়েছে। আবার চেষ্টা করুন।",
 
+  "confirm.title": "আপনার সংখ্যাগুলো যাচাই করুন",
+  "confirm.subtitle": "নথি সবসময় পুরো গল্প বলে না — আপনার পরিকল্পনা চূড়ান্ত করার আগে যা ভুল আছে তা ঠিক করুন।",
+  "confirm.emiWarning":
+    "আপনার CIBIL রিপোর্ট অনুযায়ী, আমরা এই পরিমাণ মাসিক EMI পেয়েছি। কিছু সক্রিয় ঋণ CIBIL-এ EMI পরিমাণ জানায় না — যদি আপনার আরও থাকে যা এখানে দেখাচ্ছে না, আপনার আসল মোট পরিমাণ লিখুন।",
+  "confirm.emiLabel": "আপনার আসল মোট মাসিক EMI",
+  "confirm.incomeWarning":
+    "আপনার ব্যাংক স্টেটমেন্ট অনুযায়ী, আমরা এই পরিমাণ আয় পেয়েছি। ইনসেনটিভ, বোনাস, বা অন্যান্য নিয়মিত ক্রেডিট প্রায়ই বাদ পড়ে যায় যদি সেগুলো বেতন হিসেবে চিহ্নিত না থাকে — আপনার আসল মোট মাসিক আয় লিখুন।",
+  "confirm.incomeLabel": "আপনার আসল মোট মাসিক আয়",
+  "confirm.continueButton": "নিশ্চিত করুন ও ড্যাশবোর্ড দেখুন",
+  "confirm.error": "পুনর্গণনা করা যায়নি। আবার চেষ্টা করুন।",
+
   "dashboard.title": "আপনার আর্থিক হোম",
   "dashboard.subtitle": "আপনার আসল নথি থেকে তৈরি।",
   "dashboard.cibilLabel": "CIBIL",
@@ -590,12 +623,12 @@ const bn: Dict = {
     "এখনও কোনো অফার মেলেনি — ভবিষ্যতে পুনরায় বিশ্লেষণে আপনার CIBIL বা FD স্ট্যাটাস বদলালে এটা নিজে থেকেই আপডেট হবে।",
 
   "advisor.title": "উপদেষ্টা",
-  "advisor.subtitle": "আপনার ঋণ, EMI, বা ক্রেডিট নিয়ে যা খুশি জিজ্ঞাসা করুন — আপনার আসল সংখ্যার ভিত্তিতে।",
-  "advisor.askArthTitle": "Arth-কে জিজ্ঞাসা করুন",
-  "advisor.askArthSubtitle": "উত্তর আপনার আসল সংখ্যার ভিত্তিতে, সাধারণ পরামর্শ নয়।",
-  "advisor.askPlaceholder": "আমার কি পার্সোনাল লোন আগেভাগে শোধ করা উচিত?",
-  "advisor.askButton": "জিজ্ঞাসা করুন",
-  "advisor.errorBusy": "Arth এখন ব্যস্ত, একটু পরে আবার চেষ্টা করুন।",
+  "advisor.subtitle": "আসল মানুষের সাহায্যের জন্য সরাসরি আমাদের টিমের সাথে কথা বলুন।",
+  "advisor.whatsappTitle": "আমাদের টিমের সাথে চ্যাট করুন",
+  "advisor.whatsappDesc": "আপনার ঋণ, ড্যাশবোর্ড, বা অন্য কিছু নিয়ে প্রশ্ন — আমাদের টিমের একজন আসল ব্যক্তি WhatsApp-এ উত্তর দেবেন।",
+  "advisor.whatsappButton": "WhatsApp-এ চ্যাট করুন",
+  "advisor.whatsappPrefill": "নমস্কার, আমার Homnivas Finance Network অ্যাকাউন্ট নিয়ে একটা প্রশ্ন আছে।",
+  "advisor.whatsappNotConfigured": "WhatsApp সাপোর্ট এখনও সেট করা হয়নি — একটু পরে দেখুন।",
 
   "profile.title": "প্রোফাইল",
   "profile.nameLabel": "নাম",

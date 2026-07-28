@@ -5,7 +5,7 @@ quiz → personality reveal → locked preview → ₹345 checkout → profile �
 document upload → AI analysis → Pro dashboard → 1-EMI / Loan-Against-FD
 offers. Talks to the `homnivas-finance-pro` backend for everything real
 (auth verification, payment, analysis, leads) — this app holds no secrets
-and does no server-side logic of its own.
+and does no server-side logic of its own
 
 ```
 src/
